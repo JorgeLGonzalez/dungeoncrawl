@@ -10,7 +10,7 @@ impl Player {
     }
 
     pub fn render(&self, ctx: &mut BTerm, camera: &Camera) {
-        ctx.set_active_console(1);
+        ctx.set_active_console(2);
         ctx.set(
             self.position.x - camera.left_x,
             self.position.y - camera.top_y,

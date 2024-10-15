@@ -26,7 +26,9 @@ fn main() -> BError {
         .with_tile_dimensions(32, 32)
         .with_resource_path("resources/")
         .with_font("dungeonfont.png", 32, 32)
+        // layer 0 not used. Not sure why it does not work.
         .with_simple_console(DISPLAY_WIDTH, DISPLAY_HEIGHT, "dungeonfont.png")
+        .with_simple_console_no_bg(DISPLAY_WIDTH, DISPLAY_HEIGHT, "dungeonfont.png")
         .with_simple_console_no_bg(DISPLAY_WIDTH, DISPLAY_HEIGHT, "dungeonfont.png")
         .build()?;
 
@@ -57,6 +59,8 @@ impl GameState for State {
         ctx.set_active_console(0);
         ctx.cls();
         ctx.set_active_console(1);
+        ctx.cls();
+        ctx.set_active_console(2);
         ctx.cls();
 
         self.player.update(ctx, &self.map, &mut self.camera);
