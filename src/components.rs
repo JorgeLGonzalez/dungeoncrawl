@@ -15,8 +15,23 @@ pub struct Render {
     pub glyph: FontCharType,
 }
 
+impl Render {
+    pub fn new(color: ColorPair, glyph: FontCharType) -> Self {
+        Self { color, glyph }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct WantsToMove {
-    pub entity: Entity,
     pub destination: Point,
+    pub entity: Entity,
+}
+
+impl WantsToMove {
+    pub fn new(destination: Point, entity: Entity) -> Self {
+        Self {
+            entity,
+            destination,
+        }
+    }
 }
