@@ -5,13 +5,14 @@ use crate::prelude::*;
 #[read_component(Player)]
 #[read_component(Point)]
 pub fn collisions(ecs: &SubWorld, commands: &mut CommandBuffer) {
-    let mut player_pos = Point::zero();
-    let mut players = <&Point>::query().filter(component::<Player>());
-    // TODO convert to a find w/ expect?
-    players.iter(ecs).for_each(|pos| player_pos = *pos);
+    let player_pos = *<&Point>::query()
+        .filter(component::<Player>())
+        .iter(ecs)
+        .nth(0)
+        .expect("No player!");
 
-    let mut enemies = <(Entity, &Point)>::query().filter(component::<Enemy>());
-    enemies
+    <(Entity, &Point)>::query()
+        .filter(component::<Enemy>())
         .iter(ecs)
         .filter(|(_, pos)| **pos == player_pos)
         .for_each(|(entity, _)| {
