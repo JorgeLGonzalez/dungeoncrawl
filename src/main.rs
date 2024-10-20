@@ -22,6 +22,18 @@ mod prelude {
     pub const DISPLAY_WIDTH: i32 = SCREEN_WIDTH / 2;
     pub const SCREEN_HEIGHT: i32 = 50;
     pub const SCREEN_WIDTH: i32 = 80;
+
+    pub enum ConsoleLayer {
+        Map = 1,
+        Entity = 2,
+        Hud = 3,
+    }
+
+    impl From<ConsoleLayer> for usize {
+        fn from(value: ConsoleLayer) -> Self {
+            value as usize
+        }
+    }
 }
 
 use prelude::*;
@@ -86,16 +98,16 @@ impl GameState for State {
     fn tick(&mut self, ctx: &mut BTerm) {
         ctx.set_active_console(0);
         ctx.cls();
-        ctx.set_active_console(1);
+        ctx.set_active_console(ConsoleLayer::Map.into());
         ctx.cls();
-        ctx.set_active_console(2);
+        ctx.set_active_console(ConsoleLayer::Entity.into());
         ctx.cls();
-        ctx.set_active_console(3);
+        ctx.set_active_console(ConsoleLayer::Hud.into());
         ctx.cls();
 
         self.resources.insert(ctx.key);
 
-        ctx.set_active_console(1);
+        ctx.set_active_console(ConsoleLayer::Map.into());
         self.resources.insert(Point::from_tuple(ctx.mouse_pos()));
 
         let current_state = self.resources.get::<TurnState>().unwrap().clone();

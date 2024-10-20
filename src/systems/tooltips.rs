@@ -6,7 +6,7 @@ use crate::prelude::*;
 #[read_component(Point)]
 pub fn tooltip(ecs: &SubWorld, #[resource] mouse_pos: &Point, #[resource] camera: &Camera) {
     let mut draw_batch = DrawBatch::new();
-    draw_batch.target(3);
+    draw_batch.target(ConsoleLayer::Hud.into());
 
     let map_pos = determine_map_pos(*mouse_pos, camera);
     <(Entity, &Point, &Name)>::query()
