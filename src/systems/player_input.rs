@@ -23,20 +23,19 @@ pub fn player_input(
             .find_map(|(entity, pos)| Some((*entity, *pos + delta)))
             .unwrap();
 
-        let mut enemies = <(Entity, &Point)>::query().filter(component::<Enemy>());
-        if delta.x != 0 || delta.y != 0 {
-            let mut hit_something = false;
-            enemies
+        let will_move = delta.x != 0 || delta.y != 0;
+        if will_move {
+            let attacks: Vec<((), WantsToAttack)> = <(Entity, &Point)>::query()
+                .filter(component::<Enemy>())
                 .iter(ecs)
                 .filter(|(_, pos)| **pos == destination)
-                .for_each(|(entity, _)| {
-                    hit_something = true;
+                .map(|(entity, _)| ((), WantsToAttack::new(player, *entity)))
+                .collect();
 
-                    commands.push(((), WantsToAttack::new(player, *entity)));
-                });
-
-            if !hit_something {
+            if attacks.is_empty() {
                 commands.push(((), WantsToMove::new(destination, player)));
+            } else {
+                commands.extend(attacks);
             }
         }
         *turn_state = TurnState::PlayerTurn;
