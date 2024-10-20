@@ -37,6 +37,18 @@ impl Render {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
+pub struct WantsToAttack {
+    pub attacker: Entity,
+    pub victim: Entity,
+}
+
+impl WantsToAttack {
+    pub fn new(attacker: Entity, victim: Entity) -> Self {
+        Self { attacker, victim }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct WantsToMove {
     pub destination: Point,
     pub entity: Entity,
