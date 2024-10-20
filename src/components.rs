@@ -4,7 +4,22 @@ pub use crate::prelude::*;
 pub struct Enemy;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Health {
+    pub current: i32,
+    pub max: i32,
+}
+
+impl Health {
+    pub fn new(current: i32, max: i32) -> Self {
+        Self { current, max }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct MovingRandomly;
+
+#[derive(Clone, PartialEq)]
+pub struct Name(pub String);
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Player;
