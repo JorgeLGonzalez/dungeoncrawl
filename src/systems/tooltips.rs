@@ -5,11 +5,12 @@ use crate::prelude::*;
 #[read_component(Name)]
 #[read_component(Point)]
 pub fn tooltip(ecs: &SubWorld, #[resource] mouse_pos: &Point, #[resource] camera: &Camera) {
+    // TODO why are positions mut
     let mut positions = <(Entity, &Point, &Name)>::query();
     let offset = Point::new(camera.left_x, camera.top_y);
     let map_pos = *mouse_pos + offset;
     let mut draw_batch = DrawBatch::new();
-    draw_batch.target(2);
+    draw_batch.target(3);
 
     positions
         .iter(ecs)
