@@ -38,6 +38,7 @@ pub fn player_input(
                 commands.extend(attacks);
             }
         }
+
         *turn_state = TurnState::PlayerTurn;
     }
 }
