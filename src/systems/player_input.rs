@@ -11,32 +11,26 @@ pub fn player_input(
     #[resource] key: &Option<VirtualKeyCode>,
     #[resource] turn_state: &mut TurnState,
 ) {
-    let mut did_something = false;
-    key.and_then(delta).map(|delta| {
-        let player = get_player_info(ecs, delta);
-        let attacks = gather_attacks(ecs, &player);
+    let (player, pos) = <(Entity, &Point)>::query()
+        .filter(component::<Player>())
+        .iter(ecs)
+        .nth(0)
+        .map(|(player, pos)| (*player, *pos))
+        .unwrap();
+    let destination = key.and_then(delta).map(|delta| delta + pos);
+    let attacks = gather_attacks(ecs, player, destination);
 
-        if attacks.is_empty() {
-            commands.push(((), WantsToMove::new(player.destination, player.player)));
-        } else {
-            commands.extend(attacks);
-        }
-
-        did_something = true;
-    });
+    if attacks.is_empty() {
+        destination.map(|d| {
+            commands.push(((), WantsToMove::new(d, player)));
+        });
+    } else {
+        commands.extend(attacks);
+    }
 
     if key.is_some() {
-        let player = <(Entity, &Point)>::query()
-            .filter(component::<Player>())
-            .iter(ecs)
-            .nth(0)
-            .map(|(p, _)| *p)
-            .unwrap();
-
-        if !did_something {
-            if let Ok(health) = ecs.entry_mut(player).unwrap().get_component_mut::<Health>() {
-                health.current = i32::min(health.max, health.current + 1);
-            }
+        if destination.is_none() {
+            heal(ecs, player);
         }
 
         *turn_state = TurnState::PlayerTurn;
@@ -53,38 +47,28 @@ fn delta(key: VirtualKeyCode) -> Option<Point> {
     }
 }
 
-fn gather_attacks(ecs: &SubWorld, player_info: &PlayerInfo) -> Vec<((), WantsToAttack)> {
-    let PlayerInfo {
-        destination,
-        player,
-    } = *player_info;
-
-    <(Entity, &Point)>::query()
-        .filter(component::<Enemy>())
-        .iter(ecs)
-        .filter(|(_, pos)| **pos == destination)
-        .map(|(entity, _)| ((), WantsToAttack::new(player, *entity)))
-        .collect()
-}
-
-fn get_player_info(ecs: &SubWorld, delta: Point) -> PlayerInfo {
-    <(Entity, &Point)>::query()
-        .filter(component::<Player>())
-        .iter(ecs)
-        .find_map(|(entity, pos)| Some(PlayerInfo::new(*entity, *pos + delta)))
-        .unwrap()
-}
-
-struct PlayerInfo {
-    destination: Point,
+fn gather_attacks(
+    ecs: &SubWorld,
     player: Entity,
+    destination: Option<Point>,
+) -> Vec<((), WantsToAttack)> {
+    destination
+        .map(|destination| {
+            <(Entity, &Point)>::query()
+                .filter(component::<Enemy>())
+                .iter(ecs)
+                .filter(|(_, pos)| **pos == destination)
+                .map(|(entity, _)| ((), WantsToAttack::new(player, *entity)))
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
-impl PlayerInfo {
-    fn new(player: Entity, destination: Point) -> Self {
-        Self {
-            destination,
-            player,
+fn heal(ecs: &mut SubWorld, player: Entity) {
+    if let Ok(health) = ecs.entry_mut(player).unwrap().get_component_mut::<Health>() {
+        if health.current < health.max {
+            health.current += 1;
+            println!("Healed to {}", health.current);
         }
     }
 }
