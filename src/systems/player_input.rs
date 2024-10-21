@@ -11,28 +11,25 @@ pub fn player_input(
     #[resource] key: &Option<VirtualKeyCode>,
     #[resource] turn_state: &mut TurnState,
 ) {
-    let (player, pos) = <(Entity, &Point)>::query()
-        .filter(component::<Player>())
-        .iter(ecs)
-        .nth(0)
-        .map(|(player, pos)| (*player, *pos))
-        .unwrap();
+    let (player, pos) = get_player_info(ecs);
     let destination = key.and_then(delta).map(|delta| delta + pos);
     let attacks = gather_attacks(ecs, player, destination);
+    let action = determine_action(player, attacks, destination, key);
+    let take_turn = action != Action::None;
 
-    if attacks.is_empty() {
-        destination.map(|d| {
-            commands.push(((), WantsToMove::new(d, player)));
-        });
-    } else {
-        commands.extend(attacks);
-    }
-
-    if key.is_some() {
-        if destination.is_none() {
-            heal(ecs, player);
+    match action {
+        Action::Attack(a) => {
+            commands.extend(a);
         }
+        // note: heal should also be a command?
+        Action::Heal => heal(ecs, player),
+        Action::Move(m) => {
+            commands.extend(m);
+        }
+        Action::None => (),
+    };
 
+    if take_turn {
         *turn_state = TurnState::PlayerTurn;
     }
 }
@@ -47,11 +44,28 @@ fn delta(key: VirtualKeyCode) -> Option<Point> {
     }
 }
 
-fn gather_attacks(
-    ecs: &SubWorld,
+fn determine_action(
     player: Entity,
+    attacks: AttackCommandVec,
     destination: Option<Point>,
-) -> Vec<((), WantsToAttack)> {
+    key: &Option<VirtualKeyCode>,
+) -> Action {
+    if key.is_none() {
+        return Action::None;
+    }
+
+    if !attacks.is_empty() {
+        return Action::Attack(attacks);
+    }
+
+    if let Some(destination) = destination {
+        return Action::Move(vec![((), WantsToMove::new(destination, player))]);
+    }
+
+    return Action::Heal;
+}
+
+fn gather_attacks(ecs: &SubWorld, player: Entity, destination: Option<Point>) -> AttackCommandVec {
     destination
         .map(|destination| {
             <(Entity, &Point)>::query()
@@ -64,6 +78,15 @@ fn gather_attacks(
         .unwrap_or_default()
 }
 
+fn get_player_info(ecs: &SubWorld) -> (Entity, Point) {
+    <(Entity, &Point)>::query()
+        .filter(component::<Player>())
+        .iter(ecs)
+        .nth(0)
+        .map(|(player, pos)| (*player, *pos))
+        .unwrap()
+}
+
 fn heal(ecs: &mut SubWorld, player: Entity) {
     if let Ok(health) = ecs.entry_mut(player).unwrap().get_component_mut::<Health>() {
         if health.current < health.max {
@@ -72,3 +95,14 @@ fn heal(ecs: &mut SubWorld, player: Entity) {
         }
     }
 }
+
+#[derive(PartialEq)]
+enum Action {
+    Attack(AttackCommandVec),
+    Heal,
+    Move(MoveCommandVec),
+    None,
+}
+
+type AttackCommandVec = Vec<((), WantsToAttack)>;
+type MoveCommandVec = Vec<((), WantsToMove)>;
