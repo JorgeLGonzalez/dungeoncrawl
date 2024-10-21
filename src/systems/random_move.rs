@@ -13,26 +13,21 @@ pub fn random_move(ecs: &mut SubWorld, commands: &mut CommandBuffer) {
         .iter(ecs)
         .for_each(|(entity, pos, _)| {
             let destination = determine_destination(&mut rng, *pos);
-
             let occupants: Vec<Occupant> = positions
                 .iter(ecs)
                 .filter(|p| destination_occupied(destination, p))
                 .map(|(victim, _, _)| identify_occupant(ecs, *victim))
                 .collect();
 
-            // TODO fn that returns attacks on player that we then push to commands
-            occupants
-                .iter()
-                .filter_map(|o| match *o {
-                    Occupant::Player(p) => Some(WantsToAttack::new(*entity, p)),
-                    _ => None,
-                })
-                .for_each(|attack| {
-                    commands.push(((), attack));
-                });
-
-            if occupants.is_empty() {
+            if let Some(player_to_attack) = find_player_occupant(&occupants) {
+                commands.push(((), WantsToAttack::new(*entity, player_to_attack)));
+            } else if occupants.is_empty() {
                 commands.push(((), WantsToMove::new(destination, *entity)));
+            } else {
+                println!(
+                    "Monster blocked from moving by another monster at {:?}",
+                    destination
+                );
             }
         });
 }
@@ -50,6 +45,16 @@ fn determine_destination(rng: &mut RandomNumberGenerator, pos: Point) -> Point {
     };
 
     delta + pos
+}
+
+fn find_player_occupant(occupants: &[Occupant]) -> Option<Entity> {
+    occupants
+        .iter()
+        .filter_map(|o| match *o {
+            Occupant::Player(p) => Some(p),
+            _ => None,
+        })
+        .last()
 }
 
 fn identify_occupant(ecs: &SubWorld, occupant: Entity) -> Occupant {
