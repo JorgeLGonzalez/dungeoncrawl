@@ -1,14 +1,17 @@
 use crate::prelude::*;
 
 #[system]
+#[read_component(Enemy)]
 #[read_component(Player)]
 #[read_component(Point)]
+#[write_component(Health)]
 pub fn player_input(
     ecs: &mut SubWorld,
     commands: &mut CommandBuffer,
     #[resource] key: &Option<VirtualKeyCode>,
     #[resource] turn_state: &mut TurnState,
 ) {
+    let mut did_something = false;
     key.and_then(delta).map(|delta| {
         let player = get_player_info(ecs, delta);
         let attacks = gather_attacks(ecs, &player);
@@ -18,9 +21,24 @@ pub fn player_input(
         } else {
             commands.extend(attacks);
         }
+
+        did_something = true;
     });
 
     if key.is_some() {
+        let player = <(Entity, &Point)>::query()
+            .filter(component::<Player>())
+            .iter(ecs)
+            .nth(0)
+            .map(|(p, _)| *p)
+            .unwrap();
+
+        if !did_something {
+            if let Ok(health) = ecs.entry_mut(player).unwrap().get_component_mut::<Health>() {
+                health.current = i32::min(health.max, health.current + 1);
+            }
+        }
+
         *turn_state = TurnState::PlayerTurn;
     }
 }
