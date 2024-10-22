@@ -6,17 +6,13 @@ use crate::prelude::*;
 #[read_component(Player)]
 #[read_component(Point)]
 pub fn chasing(#[resource] map: &Map, ecs: &SubWorld, commands: &mut CommandBuffer) {
-    let mut player = <(&Point, &Player)>::query();
-    let player_pos = player.iter(ecs).nth(0).unwrap().0;
-    let player_idx = map_idx(player_pos.x, player_pos.y);
-
-    let search_targets = vec![player_idx];
-    let dijkstra_map = DijkstraMap::new(SCREEN_WIDTH, SCREEN_HEIGHT, &search_targets, map, 1024.0);
+    let player_pos = get_player_pos(ecs);
+    let dijkstra_map = create_dijkstra_map(player_pos, map);
 
     <(Entity, &Point, &ChasingPlayer)>::query()
         .iter(ecs)
         .map(|(entity, pos, _)| {
-            determine_action(*entity, *pos, *player_pos, &dijkstra_map, map, ecs)
+            determine_action(*entity, *pos, player_pos, &dijkstra_map, map, ecs)
         })
         .for_each(|a| match a {
             Action::Attack(a) => {
@@ -27,6 +23,12 @@ pub fn chasing(#[resource] map: &Map, ecs: &SubWorld, commands: &mut CommandBuff
             }
             Action::None => (),
         });
+}
+
+fn create_dijkstra_map(player_pos: Point, map: &Map) -> DijkstraMap {
+    let player_idx = map_idx(player_pos.x, player_pos.y);
+    let search_targets = vec![player_idx];
+    DijkstraMap::new(SCREEN_WIDTH, SCREEN_HEIGHT, &search_targets, map, 1024.0)
 }
 
 fn determine_action(
@@ -71,6 +73,21 @@ fn determine_action(
     }
 }
 
+fn find_player(occupants: &[Occupant]) -> Option<Entity> {
+    occupants
+        .iter()
+        .filter_map(|o| match *o {
+            Occupant::Player(p) => Some(p),
+            _ => None,
+        })
+        .last()
+}
+
+fn get_player_pos(ecs: &SubWorld) -> Point {
+    let mut player = <(&Point, &Player)>::query();
+    *player.iter(ecs).nth(0).unwrap().0
+}
+
 fn identify(ecs: &SubWorld, occupant: Entity) -> Occupant {
     if ecs
         .entry_ref(occupant)
@@ -84,16 +101,6 @@ fn identify(ecs: &SubWorld, occupant: Entity) -> Occupant {
     }
 }
 
-fn find_player(occupants: &[Occupant]) -> Option<Entity> {
-    occupants
-        .iter()
-        .filter_map(|o| match *o {
-            Occupant::Player(p) => Some(p),
-            _ => None,
-        })
-        .last()
-}
-
 fn occupied(destination: Point, (_, pos, _): &(&Entity, &Point, &Health)) -> bool {
     **pos == destination
 }
@@ -103,7 +110,6 @@ enum Occupant {
     FellowMonster,
 }
 
-#[derive(PartialEq)]
 enum Action {
     Attack(WantsToAttack),
     Move(WantsToMove),
