@@ -67,23 +67,18 @@ impl Algorithm2D for Map {
 
 impl BaseMap for Map {
     fn get_available_exits(&self, idx: usize) -> SmallVec<[(usize, f32); 10]> {
-        let mut exits = SmallVec::new();
         let location = self.index_to_point2d(idx);
 
-        if let Some(idx) = self.valid_exit(location, Point::new(-1, 0)) {
-            exits.push((idx, 1.0));
-        }
-        if let Some(idx) = self.valid_exit(location, Point::new(1, 0)) {
-            exits.push((idx, 1.0));
-        }
-        if let Some(idx) = self.valid_exit(location, Point::new(0, -1)) {
-            exits.push((idx, 1.0));
-        }
-        if let Some(idx) = self.valid_exit(location, Point::new(0, 1)) {
-            exits.push((idx, 1.0));
-        }
-
-        exits
+        [
+            Point::new(-1, 0),
+            Point::new(1, 0),
+            Point::new(0, -1),
+            Point::new(0, 1),
+        ]
+        .iter()
+        .filter_map(|delta| self.valid_exit(location, *delta))
+        .map(|idx| (idx, 1.0))
+        .collect()
     }
 
     fn get_pathing_distance(&self, idx1: usize, idx2: usize) -> f32 {
