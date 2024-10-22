@@ -1,6 +1,9 @@
 pub use crate::prelude::*;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ChasingPlayer;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Enemy;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
