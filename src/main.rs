@@ -68,13 +68,14 @@ impl State {
     fn new() -> Self {
         let mut rng = RandomNumberGenerator::new();
         let MapBuilder {
+            amulet_start,
             map,
             player_start,
             rooms,
         } = MapBuilder::new(&mut rng);
         let resources = create_resources(map, player_start);
         let mut ecs = World::default();
-        spawn(&mut ecs, &mut rng, player_start, &rooms);
+        spawn(&mut ecs, &mut rng, player_start, amulet_start, &rooms);
 
         Self {
             ecs,
@@ -96,13 +97,14 @@ impl State {
     fn restart(&mut self) {
         let mut rng = RandomNumberGenerator::new();
         let MapBuilder {
+            amulet_start,
             map,
             player_start,
             rooms,
         } = MapBuilder::new(&mut rng);
         self.resources = create_resources(map, player_start);
         self.ecs = World::default();
-        spawn(&mut self.ecs, &mut rng, player_start, &rooms);
+        spawn(&mut self.ecs, &mut rng, player_start, amulet_start, &rooms);
     }
 }
 

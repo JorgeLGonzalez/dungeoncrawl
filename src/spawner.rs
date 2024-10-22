@@ -3,16 +3,27 @@ use crate::prelude::*;
 pub fn spawn(
     ecs: &mut World,
     rng: &mut RandomNumberGenerator,
-    player_start: Point,
+    player_pos: Point,
+    amulet_pos: Point,
     rooms: &[Rect],
 ) {
-    spawn_player(ecs, player_start);
+    spawn_player(ecs, player_pos);
+    spawn_amulet_of_yala(ecs, amulet_pos);
 
     rooms
         .iter()
         .skip(1)
         .map(|r| r.center())
         .for_each(|pos| spawn_monster(ecs, rng, pos));
+}
+
+fn spawn_amulet_of_yala(ecs: &mut World, pos: Point) {
+    ecs.push((
+        Item,
+        AmuletOfYala,
+        pos,
+        Render::new(ColorPair::new(WHITE, BLACK), to_cp437('/')),
+    ));
 }
 
 fn spawn_monster(ecs: &mut World, rng: &mut RandomNumberGenerator, pos: Point) {

@@ -1,6 +1,9 @@
 pub use crate::prelude::*;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AmuletOfYala; // YALA = Yet Another Lost Amulet :)
+
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ChasingPlayer;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -17,6 +20,9 @@ impl Health {
         Self { current, max }
     }
 }
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Item;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct MovingRandomly;
