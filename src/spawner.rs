@@ -1,6 +1,21 @@
 use crate::prelude::*;
 
-pub fn spawn_monster(ecs: &mut World, rng: &mut RandomNumberGenerator, pos: Point) {
+pub fn spawn(
+    ecs: &mut World,
+    rng: &mut RandomNumberGenerator,
+    player_start: Point,
+    rooms: &[Rect],
+) {
+    spawn_player(ecs, player_start);
+
+    rooms
+        .iter()
+        .skip(1)
+        .map(|r| r.center())
+        .for_each(|pos| spawn_monster(ecs, rng, pos));
+}
+
+fn spawn_monster(ecs: &mut World, rng: &mut RandomNumberGenerator, pos: Point) {
     let (hp, name, glyph) = match rng.roll_dice(1, 10) {
         1..=8 => goblin(),
         _ => orc(),
@@ -16,7 +31,7 @@ pub fn spawn_monster(ecs: &mut World, rng: &mut RandomNumberGenerator, pos: Poin
     ));
 }
 
-pub fn spawn_player(ecs: &mut World, pos: Point) {
+fn spawn_player(ecs: &mut World, pos: Point) {
     ecs.push((
         Player,
         pos,

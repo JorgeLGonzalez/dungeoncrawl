@@ -67,22 +67,14 @@ struct State {
 impl State {
     fn new() -> Self {
         let mut rng = RandomNumberGenerator::new();
-        let map_builder = MapBuilder::new(&mut rng);
-
-        let mut resources = Resources::default();
-        resources.insert(map_builder.map);
-        resources.insert(Camera::new(map_builder.player_start));
-        resources.insert(TurnState::AwaitingInput);
-
+        let MapBuilder {
+            map,
+            player_start,
+            rooms,
+        } = MapBuilder::new(&mut rng);
+        let resources = create_resources(map, player_start);
         let mut ecs = World::default();
-
-        spawn_player(&mut ecs, map_builder.player_start);
-        map_builder
-            .rooms
-            .iter()
-            .skip(1)
-            .map(|r| r.center())
-            .for_each(|pos| spawn_monster(&mut ecs, &mut rng, pos));
+        spawn(&mut ecs, &mut rng, player_start, &rooms);
 
         Self {
             ecs,
@@ -94,44 +86,23 @@ impl State {
     }
 
     fn game_over(&mut self, ctx: &mut BTerm) {
-        ctx.set_active_console(ConsoleLayer::Hud.into());
-        ctx.print_color_centered(2, RED, BLACK, "Your quest has ended.");
-        ctx.print_color_centered(
-            4,
-            WHITE,
-            BLACK,
-            "Slain by a monster, your hero's journey has come to a premature end.",
-        );
-        ctx.print_color_centered(
-            5,
-            WHITE,
-            BLACK,
-            "The Amulet of Yala remains unclaimed, and your home town is not saved.",
-        );
-        ctx.print_color_centered(
-            8,
-            YELLOW,
-            BLACK,
-            "Don't worry, you can always try again with a new hero.",
-        );
-        ctx.print_color_centered(9, GREEN, BLACK, "Press 1 to play again");
+        render_game_over_overlay(ctx);
 
         if let Some(VirtualKeyCode::Key1) = ctx.key {
-            self.ecs = World::default();
-            self.resources = Resources::default();
-            let mut rng = RandomNumberGenerator::new();
-            let map_builder = MapBuilder::new(&mut rng);
-            spawn_player(&mut self.ecs, map_builder.player_start);
-            map_builder
-                .rooms
-                .iter()
-                .skip(1)
-                .map(|r| r.center())
-                .for_each(|pos| spawn_monster(&mut self.ecs, &mut rng, pos));
-            self.resources.insert(map_builder.map);
-            self.resources.insert(Camera::new(map_builder.player_start));
-            self.resources.insert(TurnState::AwaitingInput);
+            self.restart();
         }
+    }
+
+    fn restart(&mut self) {
+        let mut rng = RandomNumberGenerator::new();
+        let MapBuilder {
+            map,
+            player_start,
+            rooms,
+        } = MapBuilder::new(&mut rng);
+        self.resources = create_resources(map, player_start);
+        self.ecs = World::default();
+        spawn(&mut self.ecs, &mut rng, player_start, &rooms);
     }
 }
 
@@ -165,4 +136,37 @@ impl GameState for State {
 
         render_draw_buffer(ctx).expect("Render error");
     }
+}
+
+fn create_resources(map: Map, player_start: Point) -> Resources {
+    let mut resources = Resources::default();
+    resources.insert(map);
+    resources.insert(Camera::new(player_start));
+    resources.insert(TurnState::AwaitingInput);
+
+    resources
+}
+
+fn render_game_over_overlay(ctx: &mut BTerm) {
+    ctx.set_active_console(ConsoleLayer::Hud.into());
+    ctx.print_color_centered(2, RED, BLACK, "Your quest has ended.");
+    ctx.print_color_centered(
+        4,
+        WHITE,
+        BLACK,
+        "Slain by a monster, your hero's journey has come to a premature end.",
+    );
+    ctx.print_color_centered(
+        5,
+        WHITE,
+        BLACK,
+        "The Amulet of Yala remains unclaimed, and your home town is not saved.",
+    );
+    ctx.print_color_centered(
+        8,
+        YELLOW,
+        BLACK,
+        "Don't worry, you can always try again with a new hero.",
+    );
+    ctx.print_color_centered(9, GREEN, BLACK, "Press 1 to play again");
 }
