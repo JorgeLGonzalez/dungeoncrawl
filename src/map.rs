@@ -37,13 +37,13 @@ impl Map {
 
     fn valid_exit(&self, loc: Point, delta: Point) -> Option<usize> {
         let destination = loc + delta;
-        if self.in_bounds(destination) {
-            if self.can_enter_tile(destination) {
-                let idx = self.point2d_to_index(destination);
-                Some(idx)
-            } else {
-                None
-            }
+        if !self.in_bounds(destination) {
+            return None;
+        }
+
+        if self.can_enter_tile(destination) {
+            let idx = self.point2d_to_index(destination);
+            Some(idx)
         } else {
             None
         }
