@@ -6,11 +6,7 @@ use crate::prelude::*;
 #[write_component(Health)]
 pub fn combat(ecs: &mut SubWorld, commands: &mut CommandBuffer) {
     gather_victims(ecs).iter().for_each(|(message, victim)| {
-        let is_player = ecs
-            .entry_ref(*victim)
-            .unwrap()
-            .get_component::<Player>()
-            .is_ok();
+        let is_player = is_player(ecs, *victim);
 
         damage(ecs, *victim)
             .filter(|health| *health < 1 && !is_player)
@@ -23,13 +19,6 @@ pub fn combat(ecs: &mut SubWorld, commands: &mut CommandBuffer) {
     });
 }
 
-fn gather_victims(ecs: &SubWorld) -> Vec<(Entity, Entity)> {
-    <(Entity, &WantsToAttack)>::query()
-        .iter(ecs)
-        .map(|(entity, attack)| (*entity, attack.victim))
-        .collect()
-}
-
 fn damage(ecs: &mut SubWorld, victim: Entity) -> Option<i32> {
     if let Ok(health) = ecs.entry_mut(victim).unwrap().get_component_mut::<Health>() {
         println!("Health before attack: {}", health.current);
@@ -40,4 +29,18 @@ fn damage(ecs: &mut SubWorld, victim: Entity) -> Option<i32> {
     } else {
         None
     }
+}
+
+fn gather_victims(ecs: &SubWorld) -> Vec<(Entity, Entity)> {
+    <(Entity, &WantsToAttack)>::query()
+        .iter(ecs)
+        .map(|(entity, attack)| (*entity, attack.victim))
+        .collect()
+}
+
+fn is_player(ecs: &SubWorld, victim: Entity) -> bool {
+    ecs.entry_ref(victim)
+        .unwrap()
+        .get_component::<Player>()
+        .is_ok()
 }
