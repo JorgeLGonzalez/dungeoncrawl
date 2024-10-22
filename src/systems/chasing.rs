@@ -27,25 +27,54 @@ pub fn chasing(#[resource] map: &Map, ecs: &SubWorld, commands: &mut CommandBuff
                 *player_pos
             };
 
-            let mut attacked = false;
-            positions
+            let occupants: Vec<Occupant> = positions
                 .iter(ecs)
-                .filter(|(_, target_pos, _)| **target_pos == destination)
-                .for_each(|(victim, ..)| {
-                    if ecs
-                        .entry_ref(*victim)
-                        .unwrap()
-                        .get_component::<Player>()
-                        .is_ok()
-                    {
-                        commands.push(((), WantsToAttack::new(*entity, *victim)));
-                    }
-                    attacked = true;
-                });
+                .filter(|o| occupied(destination, o))
+                .map(|(victim, ..)| identify(ecs, *victim))
+                .collect();
 
-            if !attacked {
-                commands.push(((), WantsToMove::new(destination, *entity)));
+            if let Some(player_to_attack) = find_player(&occupants) {
+                commands.push(((), WantsToAttack::new(*entity, player_to_attack)));
+            } else if occupants.is_empty() {
+                commands.push(((), WantsToMove::new(*entity, destination)));
+            } else {
+                println!(
+                    "Monster unable to move to {:?} already occupied by a fellow monster",
+                    destination
+                );
             }
         }
     });
+}
+
+fn identify(ecs: &SubWorld, occupant: Entity) -> Occupant {
+    if ecs
+        .entry_ref(occupant)
+        .unwrap()
+        .get_component::<Player>()
+        .is_ok()
+    {
+        Occupant::Player(occupant)
+    } else {
+        Occupant::FellowMonster
+    }
+}
+
+fn find_player(occupants: &[Occupant]) -> Option<Entity> {
+    occupants
+        .iter()
+        .filter_map(|o| match *o {
+            Occupant::Player(p) => Some(p),
+            _ => None,
+        })
+        .last()
+}
+
+fn occupied(destination: Point, (_, pos, _): &(&Entity, &Point, &Health)) -> bool {
+    **pos == destination
+}
+
+enum Occupant {
+    Player(Entity),
+    FellowMonster,
 }

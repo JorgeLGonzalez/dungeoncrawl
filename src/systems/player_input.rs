@@ -59,7 +59,7 @@ fn determine_action(
     }
 
     if let Some(destination) = destination {
-        return Action::Move(vec![((), WantsToMove::new(destination, player))]);
+        return Action::Move(vec![((), WantsToMove::new(player, destination))]);
     }
 
     return Action::Heal;

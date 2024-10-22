@@ -22,7 +22,7 @@ pub fn random_move(ecs: &mut SubWorld, commands: &mut CommandBuffer) {
             if let Some(player_to_attack) = find_player_occupant(&occupants) {
                 commands.push(((), WantsToAttack::new(*entity, player_to_attack)));
             } else if occupants.is_empty() {
-                commands.push(((), WantsToMove::new(destination, *entity)));
+                commands.push(((), WantsToMove::new(*entity, destination)));
             } else {
                 println!(
                     "Monster blocked from moving by another monster at {:?}",

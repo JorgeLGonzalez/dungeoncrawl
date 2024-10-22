@@ -58,7 +58,7 @@ pub struct WantsToMove {
 }
 
 impl WantsToMove {
-    pub fn new(destination: Point, entity: Entity) -> Self {
+    pub fn new(entity: Entity, destination: Point) -> Self {
         Self {
             entity,
             destination,
