@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::{prelude::*, turn_state};
 
 #[system]
 #[read_component(AmuletOfYala)]
@@ -6,20 +6,23 @@ use crate::prelude::*;
 #[read_component(Player)]
 #[read_component(Point)]
 pub fn end_turn(ecs: &SubWorld, #[resource] turn_state: &mut TurnState) {
-    let new_state = match turn_state {
-        TurnState::AwaitingInput => return,
-        TurnState::MonsterTurn => TurnState::AwaitingInput,
-        TurnState::PlayerTurn => TurnState::MonsterTurn,
-        _ => turn_state.clone(),
-    };
+    if *turn_state == TurnState::AwaitingInput {
+        return;
+    }
 
-    *turn_state = if player_died(ecs) {
+    let new_state = if player_died(ecs) {
         TurnState::GameOver
     } else if amulet_hit(ecs) {
         TurnState::Victory
     } else {
-        new_state
+        match *turn_state {
+            TurnState::MonsterTurn => TurnState::AwaitingInput,
+            TurnState::PlayerTurn => TurnState::MonsterTurn,
+            _ => turn_state.clone(),
+        }
     };
+
+    *turn_state = new_state;
 }
 
 fn amulet_hit(ecs: &SubWorld) -> bool {
