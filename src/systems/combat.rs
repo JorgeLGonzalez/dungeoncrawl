@@ -1,12 +1,19 @@
 use crate::prelude::*;
 
 #[system]
+#[read_component(Player)]
 #[read_component(WantsToAttack)]
 #[write_component(Health)]
 pub fn combat(ecs: &mut SubWorld, commands: &mut CommandBuffer) {
     gather_victims(ecs).iter().for_each(|(message, victim)| {
+        let is_player = ecs
+            .entry_ref(*victim)
+            .unwrap()
+            .get_component::<Player>()
+            .is_ok();
+
         damage(ecs, *victim)
-            .filter(|health| *health < 1)
+            .filter(|health| *health < 1 && !is_player)
             .inspect(|_| {
                 println!("\tVictim Died :-(");
                 commands.remove(*victim);
