@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use std::cmp::Ordering;
 
 const NUM_ROOMS: usize = 20;
 
@@ -22,25 +23,7 @@ impl MapBuilder {
         mb.build_random_rooms(rng);
         mb.build_corridors(rng);
         mb.player_start = mb.rooms[0].center();
-
-        let dijkstra_map = DijkstraMap::new(
-            SCREEN_WIDTH,
-            SCREEN_HEIGHT,
-            &vec![mb.map.point2d_to_index(mb.player_start)],
-            &mb.map,
-            1024.0,
-        );
-        const UNREACHABLE: &f32 = &f32::MAX;
-        mb.amulet_start = mb.map.index_to_point2d(
-            dijkstra_map
-                .map
-                .iter()
-                .enumerate()
-                .filter(|(_, dist)| *dist < UNREACHABLE)
-                .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
-                .unwrap()
-                .0,
-        );
+        mb.amulet_start = mb.place_amulet(mb.player_start);
 
         mb
     }
@@ -108,7 +91,54 @@ impl MapBuilder {
         }
     }
 
+    fn create_dijkstra_map(&self, player_pos: Point) -> DijkstraMap {
+        DijkstraMap::new(
+            SCREEN_WIDTH,
+            SCREEN_HEIGHT,
+            &vec![self.map.point2d_to_index(player_pos)],
+            &self.map,
+            1024.0,
+        )
+    }
+
+    fn enum_dijkstra(&self, player_pos: Point) -> impl Iterator<Item = DijkstraLocation> {
+        let dijkstra_map = self.create_dijkstra_map(player_pos);
+
+        const UNREACHABLE: f32 = f32::MAX;
+        dijkstra_map
+            .map
+            .into_iter()
+            .enumerate()
+            .filter(|(_, dist)| *dist < UNREACHABLE)
+            .map(DijkstraLocation::from_tuple)
+    }
+
     fn fill(&mut self, tile: TileType) {
         self.map.tiles.iter_mut().for_each(|t| *t = tile);
+    }
+
+    fn place_amulet(&self, player_pos: Point) -> Point {
+        let farthest_idx = self
+            .enum_dijkstra(player_pos)
+            .max_by(distance)
+            .unwrap()
+            .pos_idx;
+
+        self.map.index_to_point2d(farthest_idx)
+    }
+}
+
+fn distance(a: &DijkstraLocation, b: &DijkstraLocation) -> Ordering {
+    a.distance.partial_cmp(&b.distance).unwrap()
+}
+
+struct DijkstraLocation {
+    pub distance: f32,
+    pub pos_idx: usize,
+}
+
+impl DijkstraLocation {
+    pub fn from_tuple((pos_idx, distance): (usize, f32)) -> Self {
+        Self { distance, pos_idx }
     }
 }
