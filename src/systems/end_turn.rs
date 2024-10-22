@@ -4,21 +4,24 @@ use crate::prelude::*;
 #[read_component(Health)]
 #[read_component(Player)]
 pub fn end_turn(ecs: &SubWorld, #[resource] turn_state: &mut TurnState) {
-    let mut player_hp = <&Health>::query().filter(component::<Player>());
-
-    let current_state = turn_state.clone();
-    let mut new_state = match turn_state {
+    let new_state = match turn_state {
         TurnState::AwaitingInput => return,
         TurnState::MonsterTurn => TurnState::AwaitingInput,
         TurnState::PlayerTurn => TurnState::MonsterTurn,
-        _ => current_state,
+        _ => turn_state.clone(),
     };
 
-    player_hp.iter(ecs).for_each(|hp| {
-        if hp.current < 1 {
-            new_state = TurnState::GameOver;
-        }
-    });
+    *turn_state = if player_died(ecs) {
+        TurnState::GameOver
+    } else {
+        new_state
+    };
+}
 
-    *turn_state = new_state;
+fn player_died(ecs: &SubWorld) -> bool {
+    <&Health>::query()
+        .filter(component::<Player>())
+        .iter(ecs)
+        .find(|hp| hp.current < 1)
+        .is_some()
 }
