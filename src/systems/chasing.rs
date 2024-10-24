@@ -9,6 +9,8 @@ pub fn chasing(#[resource] map: &Map, ecs: &SubWorld, commands: &mut CommandBuff
     let player_pos = get_player_pos(ecs);
     let dijkstra_map = create_dijkstra_map(player_pos, map);
 
+    let mut planned_moves: Vec<WantsToMove> = Vec::new();
+
     <(Entity, &Point, &ChasingPlayer)>::query()
         .iter(ecs)
         .map(|(entity, pos, _)| {
@@ -19,7 +21,10 @@ pub fn chasing(#[resource] map: &Map, ecs: &SubWorld, commands: &mut CommandBuff
                 commands.push(((), a));
             }
             Action::Move(m) => {
-                commands.push(((), m));
+                if !will_be_occupied(&planned_moves, m) {
+                    commands.push(((), m));
+                    planned_moves.push(m);
+                }
             }
             Action::None => (),
         });
@@ -58,13 +63,17 @@ fn determine_action(
             .collect();
 
         if let Some(player_to_attack) = find_player(&occupants) {
+            println!(
+                "Monster {:?} attacks player {:?} at {:?}",
+                monster, player_to_attack, destination
+            );
             Action::Attack(WantsToAttack::new(monster, player_to_attack))
         } else if occupants.is_empty() {
             Action::Move(WantsToMove::new(monster, destination))
         } else {
             println!(
-                "Monster unable to move to {:?} already occupied by a fellow monster",
-                destination
+                "Monster {:?} unable to move to {:?} already occupied by a fellow monster",
+                monster, destination
             );
             Action::None
         }
@@ -102,7 +111,24 @@ fn identify(ecs: &SubWorld, occupant: Entity) -> Occupant {
 }
 
 fn occupied(destination: Point, (_, pos, _): &(&Entity, &Point, &Health)) -> bool {
-    **pos == destination
+    destination == **pos
+}
+
+// see README.md#issue-monsters-able-to-move-on-top-of-each-other)
+fn will_be_occupied(planned_moves: &[WantsToMove], this_move: WantsToMove) -> bool {
+    let will_be_occupied = planned_moves
+        .iter()
+        .find(|pm| pm.destination == this_move.destination)
+        .is_some();
+
+    if will_be_occupied {
+        println!(
+            ">>>> Ignoring move to {:?} for {:?} already planned by another monster.",
+            this_move.destination, this_move.entity
+        )
+    }
+
+    will_be_occupied
 }
 
 enum Occupant {
