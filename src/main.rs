@@ -68,15 +68,10 @@ struct State {
 impl State {
     fn new() -> Self {
         let mut rng = RandomNumberGenerator::new();
-        let MapBuilder {
-            amulet_start,
-            map,
-            player_start,
-            rooms,
-        } = MapBuilder::new(&mut rng);
-        let resources = create_resources(map, player_start);
+        let mb = MapBuilder::new(&mut rng);
         let mut ecs = World::default();
-        spawn(&mut ecs, &mut rng, player_start, amulet_start, &rooms);
+        spawn(&mut ecs, &mut rng, &mb);
+        let resources = create_resources(mb.map, mb.player_start);
 
         Self {
             ecs,
@@ -97,15 +92,10 @@ impl State {
 
     fn restart(&mut self) {
         let mut rng = RandomNumberGenerator::new();
-        let MapBuilder {
-            amulet_start,
-            map,
-            player_start,
-            rooms,
-        } = MapBuilder::new(&mut rng);
-        self.resources = create_resources(map, player_start);
+        let mb = MapBuilder::new(&mut rng);
         self.ecs = World::default();
-        spawn(&mut self.ecs, &mut rng, player_start, amulet_start, &rooms);
+        spawn(&mut self.ecs, &mut rng, &mb);
+        self.resources = create_resources(mb.map, mb.player_start);
     }
 
     fn victory(&mut self, ctx: &mut BTerm) {
