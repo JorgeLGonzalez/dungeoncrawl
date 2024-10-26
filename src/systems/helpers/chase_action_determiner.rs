@@ -9,6 +9,7 @@ pub struct ChaseActionDeterminer<'a> {
     dijkstra_map: DijkstraMap,
     ecs: &'a SubWorld<'a>,
     map: &'a Map,
+    planned_moves: Vec<WantsToMove>,
     player_pos: Point,
 }
 
@@ -20,12 +21,13 @@ impl<'a> ChaseActionDeterminer<'a> {
             dijkstra_map: create_dijkstra_map(player_pos, map),
             ecs,
             map,
+            planned_moves: Vec::new(),
             player_pos,
         }
     }
 
     pub fn determine(
-        &self,
+        &mut self,
         monster: Entity,
         monster_pos: Point,
         fov: &FieldOfView,
@@ -62,8 +64,12 @@ impl<'a> ChaseActionDeterminer<'a> {
                     monster,
                     player_to_attack,
                 )))
+            } else if self.will_be_occupied(monster, destination) {
+                None
             } else if occupants.is_empty() {
-                Some(ChaseAction::Move(WantsToMove::new(monster, destination)))
+                let this_move = WantsToMove::new(monster, destination);
+                self.planned_moves.push(this_move);
+                Some(ChaseAction::Move(this_move))
             } else {
                 println!(
                     "Monster {:?} unable to move to {:?} already occupied by a fellow monster",
@@ -88,6 +94,24 @@ impl<'a> ChaseActionDeterminer<'a> {
         } else {
             Occupant::FellowMonster
         }
+    }
+
+    // see README.md#issue-monsters-able-to-move-on-top-of-each-other)
+    fn will_be_occupied(&self, monster: Entity, destination: Point) -> bool {
+        let will_be_occupied = self
+            .planned_moves
+            .iter()
+            .find(|pm| pm.destination == destination)
+            .is_some();
+
+        if will_be_occupied {
+            println!(
+                ">>>> Ignoring move to {:?} for {:?} already planned by another monster.",
+                destination, monster
+            )
+        }
+
+        will_be_occupied
     }
 }
 
