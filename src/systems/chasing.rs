@@ -7,16 +7,13 @@ use crate::prelude::*;
 #[read_component(Player)]
 #[read_component(Point)]
 pub fn chasing(#[resource] map: &Map, ecs: &SubWorld, commands: &mut CommandBuffer) {
-    let player_pos = get_player_pos(ecs);
-    let dijkstra_map = create_dijkstra_map(player_pos, map);
+    let determiner = ChaseActionDeterminer::new(ecs, map);
 
     let mut planned_moves: Vec<WantsToMove> = Vec::new();
 
     <(Entity, &Point, &ChasingPlayer, &FieldOfView)>::query()
         .iter(ecs)
-        .map(|(entity, pos, _, fov)| {
-            determine_action(*entity, *pos, fov, player_pos, &dijkstra_map, map, ecs)
-        })
+        .map(|(entity, pos, _, fov)| determiner.determine(*entity, *pos, fov))
         .for_each(|a| match a {
             Action::Attack(a) => {
                 commands.push(((), a));
@@ -35,57 +32,6 @@ fn create_dijkstra_map(player_pos: Point, map: &Map) -> DijkstraMap {
     let player_idx = map_idx(player_pos.x, player_pos.y);
     let search_targets = vec![player_idx];
     DijkstraMap::new(SCREEN_WIDTH, SCREEN_HEIGHT, &search_targets, map, 1024.0)
-}
-
-fn determine_action(
-    monster: Entity,
-    monster_pos: Point,
-    fov: &FieldOfView,
-    player_pos: Point,
-    dijkstra_map: &DijkstraMap,
-    map: &Map,
-    ecs: &SubWorld,
-) -> Action {
-    if !fov.visible_tiles.contains(&player_pos) {
-        return Action::None;
-    }
-
-    let mut positions = <(Entity, &Point, &Health)>::query();
-
-    let idx = map_idx(monster_pos.x, monster_pos.y);
-    if let Some(destination) = DijkstraMap::find_lowest_exit(dijkstra_map, idx, map) {
-        let distance = DistanceAlg::Pythagoras.distance2d(monster_pos, player_pos);
-        // see p 315 for rationale for 1.2
-        let destination = if distance > 1.2 {
-            map.index_to_point2d(destination)
-        } else {
-            player_pos
-        };
-
-        let occupants: Vec<Occupant> = positions
-            .iter(ecs)
-            .filter(|o| occupied(destination, o))
-            .map(|(victim, ..)| identify(ecs, *victim))
-            .collect();
-
-        if let Some(player_to_attack) = find_player(&occupants) {
-            println!(
-                "Monster {:?} attacks player {:?} at {:?}",
-                monster, player_to_attack, destination
-            );
-            Action::Attack(WantsToAttack::new(monster, player_to_attack))
-        } else if occupants.is_empty() {
-            Action::Move(WantsToMove::new(monster, destination))
-        } else {
-            println!(
-                "Monster {:?} unable to move to {:?} already occupied by a fellow monster",
-                monster, destination
-            );
-            Action::None
-        }
-    } else {
-        Action::None
-    }
 }
 
 fn find_player(occupants: &[Occupant]) -> Option<Entity> {
@@ -135,6 +81,70 @@ fn will_be_occupied(planned_moves: &[WantsToMove], this_move: WantsToMove) -> bo
     }
 
     will_be_occupied
+}
+
+struct ChaseActionDeterminer<'a> {
+    dijkstra_map: DijkstraMap,
+    ecs: &'a SubWorld<'a>,
+    map: &'a Map,
+    player_pos: Point,
+}
+
+impl<'a> ChaseActionDeterminer<'a> {
+    fn new(ecs: &'a SubWorld, map: &'a Map) -> Self {
+        let player_pos = get_player_pos(ecs);
+
+        Self {
+            dijkstra_map: create_dijkstra_map(player_pos, map),
+            ecs,
+            map,
+            player_pos,
+        }
+    }
+
+    fn determine(&self, monster: Entity, monster_pos: Point, fov: &FieldOfView) -> Action {
+        if !fov.visible_tiles.contains(&self.player_pos) {
+            return Action::None;
+        }
+
+        let mut positions = <(Entity, &Point, &Health)>::query();
+
+        let idx = map_idx(monster_pos.x, monster_pos.y);
+        if let Some(destination) = DijkstraMap::find_lowest_exit(&self.dijkstra_map, idx, self.map)
+        {
+            let distance = DistanceAlg::Pythagoras.distance2d(monster_pos, self.player_pos);
+            // see p 315 for rationale for 1.2
+            let destination = if distance > 1.2 {
+                self.map.index_to_point2d(destination)
+            } else {
+                self.player_pos
+            };
+
+            let occupants: Vec<Occupant> = positions
+                .iter(self.ecs)
+                .filter(|o| occupied(destination, o))
+                .map(|(victim, ..)| identify(self.ecs, *victim))
+                .collect();
+
+            if let Some(player_to_attack) = find_player(&occupants) {
+                println!(
+                    "Monster {:?} attacks player {:?} at {:?}",
+                    monster, player_to_attack, destination
+                );
+                Action::Attack(WantsToAttack::new(monster, player_to_attack))
+            } else if occupants.is_empty() {
+                Action::Move(WantsToMove::new(monster, destination))
+            } else {
+                println!(
+                    "Monster {:?} unable to move to {:?} already occupied by a fellow monster",
+                    monster, destination
+                );
+                Action::None
+            }
+        } else {
+            Action::None
+        }
+    }
 }
 
 enum Occupant {
