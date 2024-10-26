@@ -13,7 +13,7 @@ pub fn chasing(#[resource] map: &Map, ecs: &SubWorld, commands: &mut CommandBuff
 
     <(Entity, &Point, &ChasingPlayer, &FieldOfView)>::query()
         .iter(ecs)
-        .map(|(entity, pos, _, fov)| determiner.determine(*entity, *pos, fov))
+        .filter_map(|(entity, pos, _, fov)| determiner.determine(*entity, *pos, fov))
         .for_each(|a| match a {
             Action::Attack(a) => {
                 commands.push(((), a));
@@ -24,7 +24,6 @@ pub fn chasing(#[resource] map: &Map, ecs: &SubWorld, commands: &mut CommandBuff
                     planned_moves.push(m);
                 }
             }
-            Action::None => (),
         });
 }
 
@@ -102,9 +101,9 @@ impl<'a> ChaseActionDeterminer<'a> {
         }
     }
 
-    fn determine(&self, monster: Entity, monster_pos: Point, fov: &FieldOfView) -> Action {
+    fn determine(&self, monster: Entity, monster_pos: Point, fov: &FieldOfView) -> Option<Action> {
         if !fov.visible_tiles.contains(&self.player_pos) {
-            return Action::None;
+            return None;
         }
 
         let mut positions = <(Entity, &Point, &Health)>::query();
@@ -131,18 +130,21 @@ impl<'a> ChaseActionDeterminer<'a> {
                     "Monster {:?} attacks player {:?} at {:?}",
                     monster, player_to_attack, destination
                 );
-                Action::Attack(WantsToAttack::new(monster, player_to_attack))
+                Some(Action::Attack(WantsToAttack::new(
+                    monster,
+                    player_to_attack,
+                )))
             } else if occupants.is_empty() {
-                Action::Move(WantsToMove::new(monster, destination))
+                Some(Action::Move(WantsToMove::new(monster, destination)))
             } else {
                 println!(
                     "Monster {:?} unable to move to {:?} already occupied by a fellow monster",
                     monster, destination
                 );
-                Action::None
+                None
             }
         } else {
-            Action::None
+            None
         }
     }
 }
@@ -155,5 +157,4 @@ enum Occupant {
 enum Action {
     Attack(WantsToAttack),
     Move(WantsToMove),
-    None,
 }
