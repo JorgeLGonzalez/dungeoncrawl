@@ -33,21 +33,23 @@ fn spawn_monster(ecs: &mut World, rng: &mut RandomNumberGenerator, pos: Point) {
     };
 
     ecs.push((
-        Enemy,
-        pos,
-        Render::new(ColorPair::new(WHITE, BLACK), glyph),
         ChasingPlayer {},
+        Enemy,
+        FieldOfView::new(6),
         Health::new(hp, hp),
         Name(name),
+        pos,
+        Render::new(ColorPair::new(WHITE, BLACK), glyph),
     ));
 }
 
 fn spawn_player(ecs: &mut World, pos: Point) {
     ecs.push((
+        FieldOfView::new(8),
+        Health::new(10, 10),
         Player,
         pos,
         Render::new(ColorPair::new(WHITE, BLACK), to_cp437('@')),
-        Health::new(10, 10),
     ));
 }
 

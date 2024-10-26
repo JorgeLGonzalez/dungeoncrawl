@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 pub use crate::prelude::*;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -8,6 +10,31 @@ pub struct ChasingPlayer;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Enemy;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct FieldOfView {
+    pub is_dirty: bool,
+    pub radius: i32,
+    pub visible_tiles: HashSet<Point>,
+}
+
+impl FieldOfView {
+    pub fn new(radius: i32) -> Self {
+        Self {
+            is_dirty: true,
+            radius,
+            visible_tiles: HashSet::new(),
+        }
+    }
+
+    pub fn clone_dirty(&self) -> Self {
+        Self {
+            is_dirty: true,
+            radius: self.radius,
+            visible_tiles: HashSet::new(),
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Health {
