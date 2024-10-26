@@ -2,6 +2,7 @@ use crate::prelude::*;
 
 #[system]
 #[read_component(ChasingPlayer)]
+#[read_component(FieldOfView)]
 #[read_component(Health)]
 #[read_component(Player)]
 #[read_component(Point)]
@@ -11,10 +12,10 @@ pub fn chasing(#[resource] map: &Map, ecs: &SubWorld, commands: &mut CommandBuff
 
     let mut planned_moves: Vec<WantsToMove> = Vec::new();
 
-    <(Entity, &Point, &ChasingPlayer)>::query()
+    <(Entity, &Point, &ChasingPlayer, &FieldOfView)>::query()
         .iter(ecs)
-        .map(|(entity, pos, _)| {
-            determine_action(*entity, *pos, player_pos, &dijkstra_map, map, ecs)
+        .map(|(entity, pos, _, fov)| {
+            determine_action(*entity, *pos, fov, player_pos, &dijkstra_map, map, ecs)
         })
         .for_each(|a| match a {
             Action::Attack(a) => {
@@ -39,11 +40,16 @@ fn create_dijkstra_map(player_pos: Point, map: &Map) -> DijkstraMap {
 fn determine_action(
     monster: Entity,
     monster_pos: Point,
+    fov: &FieldOfView,
     player_pos: Point,
     dijkstra_map: &DijkstraMap,
     map: &Map,
     ecs: &SubWorld,
 ) -> Action {
+    if !fov.visible_tiles.contains(&player_pos) {
+        return Action::None;
+    }
+
     let mut positions = <(Entity, &Point, &Health)>::query();
 
     let idx = map_idx(monster_pos.x, monster_pos.y);
