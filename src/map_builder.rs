@@ -1,9 +1,10 @@
 mod empty_architect;
+mod map_distance;
 mod rooms_architect;
 
 use crate::prelude::*;
+use map_distance::MapDistance;
 use rooms_architect::RoomsArchitect;
-use std::cmp::Ordering;
 
 const NUM_ROOMS: usize = 20;
 
@@ -71,40 +72,12 @@ impl MapBuilder {
         }
     }
 
-    fn create_dijkstra_map(&self, player_pos: Point) -> DijkstraMap {
-        DijkstraMap::new(
-            SCREEN_WIDTH,
-            SCREEN_HEIGHT,
-            &vec![self.map.point2d_to_index(player_pos)],
-            &self.map,
-            1024.0,
-        )
-    }
-
-    fn enum_dijkstra(&self, player_pos: Point) -> impl Iterator<Item = DijkstraLocation> {
-        let dijkstra_map = self.create_dijkstra_map(player_pos);
-
-        const UNREACHABLE: f32 = f32::MAX;
-        dijkstra_map
-            .map
-            .into_iter()
-            .enumerate()
-            .filter(|(_, dist)| *dist < UNREACHABLE)
-            .map(DijkstraLocation::from_tuple)
-    }
-
     fn fill(&mut self, tile: TileType) {
         self.map.tiles.iter_mut().for_each(|t| *t = tile);
     }
 
     fn find_farthest(&self) -> Point {
-        let farthest_idx = self
-            .enum_dijkstra(self.player_start)
-            .max_by(distance)
-            .unwrap()
-            .pos_idx;
-
-        self.map.index_to_point2d(farthest_idx)
+        MapDistance::new(&self.map, self.player_start).find_farthest()
     }
 
     fn tunnel_horizontally(&mut self, x1: i32, x2: i32, y: i32) {
@@ -123,20 +96,5 @@ impl MapBuilder {
                 self.map.tiles[idx as usize] = TileType::Floor;
             }
         }
-    }
-}
-
-fn distance(a: &DijkstraLocation, b: &DijkstraLocation) -> Ordering {
-    a.distance.partial_cmp(&b.distance).unwrap()
-}
-
-struct DijkstraLocation {
-    pub distance: f32,
-    pub pos_idx: usize,
-}
-
-impl DijkstraLocation {
-    pub fn from_tuple((pos_idx, distance): (usize, f32)) -> Self {
-        Self { distance, pos_idx }
     }
 }
