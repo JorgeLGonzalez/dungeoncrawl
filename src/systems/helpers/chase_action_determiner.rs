@@ -50,7 +50,7 @@ impl<'a> ChaseActionDeterminer<'a> {
             let occupants: Vec<Occupant> = positions
                 .iter(self.ecs)
                 .filter(|o| occupied(destination, o))
-                .map(|(victim, ..)| identify(self.ecs, *victim))
+                .map(|(victim, ..)| self.identify(*victim))
                 .collect();
 
             if let Some(player_to_attack) = find_player(&occupants) {
@@ -75,6 +75,20 @@ impl<'a> ChaseActionDeterminer<'a> {
             None
         }
     }
+
+    fn identify(&self, occupant: Entity) -> Occupant {
+        if self
+            .ecs
+            .entry_ref(occupant)
+            .unwrap()
+            .get_component::<Player>()
+            .is_ok()
+        {
+            Occupant::Player(occupant)
+        } else {
+            Occupant::FellowMonster
+        }
+    }
 }
 
 fn create_dijkstra_map(player_pos: Point, map: &Map) -> DijkstraMap {
@@ -96,19 +110,6 @@ fn find_player(occupants: &[Occupant]) -> Option<Entity> {
 fn get_player_pos(ecs: &SubWorld) -> Point {
     let mut player = <(&Point, &Player)>::query();
     *player.iter(ecs).nth(0).unwrap().0
-}
-
-fn identify(ecs: &SubWorld, occupant: Entity) -> Occupant {
-    if ecs
-        .entry_ref(occupant)
-        .unwrap()
-        .get_component::<Player>()
-        .is_ok()
-    {
-        Occupant::Player(occupant)
-    } else {
-        Occupant::FellowMonster
-    }
 }
 
 fn occupied(destination: Point, (_, pos, _): &(&Entity, &Point, &Health)) -> bool {
