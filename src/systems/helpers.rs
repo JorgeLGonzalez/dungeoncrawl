@@ -1,9 +1,5 @@
-use crate::prelude::*;
+mod chase_action_determiner;
+mod player_fov;
 
-pub fn player_fov<'a>(ecs: &'a SubWorld<'a>) -> &'a FieldOfView {
-    <&FieldOfView>::query()
-        .filter(component::<Player>())
-        .iter(ecs)
-        .nth(0)
-        .unwrap()
-}
+pub use chase_action_determiner::{ChaseAction, ChaseActionDeterminer};
+pub use player_fov::player_fov;
