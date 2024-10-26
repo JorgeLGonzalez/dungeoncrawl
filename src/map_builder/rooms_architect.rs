@@ -5,14 +5,7 @@ pub struct RoomsArchitect;
 
 impl MapArchitect for RoomsArchitect {
     fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder {
-        let mut mb = MapBuilder {
-            amulet_start: Point::zero(),
-            map: Map::new(),
-            monster_spawns: Vec::new(),
-            rooms: Vec::new(),
-            player_start: Point::zero(),
-        };
-        mb.fill(TileType::Wall);
+        let mut mb = MapBuilder::create(TileType::Wall);
         mb.build_random_rooms(rng);
         mb.build_corridors(rng);
         mb.player_start = mb.rooms[0].center();

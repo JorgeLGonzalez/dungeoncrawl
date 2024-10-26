@@ -27,6 +27,19 @@ impl MapBuilder {
         architect.new(rng)
     }
 
+    fn create(fill: TileType) -> Self {
+        let mut mb = Self {
+            amulet_start: Point::zero(),
+            map: Map::new(),
+            monster_spawns: Vec::new(),
+            rooms: Vec::new(),
+            player_start: Point::zero(),
+        };
+        mb.fill(fill);
+
+        mb
+    }
+
     fn build_corridors(&mut self, rng: &mut RandomNumberGenerator) {
         let mut rooms = self.rooms.clone();
         rooms.sort_by(|a, b| a.center().x.cmp(&b.center().x));

@@ -5,14 +5,7 @@ pub struct EmptyArchitect;
 
 impl MapArchitect for EmptyArchitect {
     fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder {
-        let mut mb = MapBuilder {
-            amulet_start: Point::zero(),
-            map: Map::new(),
-            monster_spawns: Vec::new(),
-            rooms: Vec::new(),
-            player_start: Point::zero(),
-        };
-        mb.fill(TileType::Floor);
+        let mut mb = MapBuilder::create(TileType::Floor);
         mb.player_start = Point::new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
         mb.amulet_start = mb.find_farthest();
 
