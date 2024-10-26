@@ -1,3 +1,4 @@
+use super::helpers::player_fov;
 use crate::prelude::*;
 
 #[system]
@@ -19,12 +20,4 @@ pub fn entity_render(ecs: &SubWorld, #[resource] camera: &Camera) {
         });
 
     draw_batch.submit(5000).expect("Batch error");
-}
-
-fn player_fov<'a>(ecs: &'a SubWorld<'a>) -> &'a FieldOfView {
-    <&FieldOfView>::query()
-        .filter(component::<Player>())
-        .iter(ecs)
-        .nth(0)
-        .unwrap()
 }

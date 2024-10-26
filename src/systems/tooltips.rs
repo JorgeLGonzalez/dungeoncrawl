@@ -1,5 +1,7 @@
 use crate::prelude::*;
 
+use super::helpers::player_fov;
+
 #[system]
 #[read_component(FieldOfView)]
 #[read_component(Health)]
@@ -7,13 +9,11 @@ use crate::prelude::*;
 #[read_component(Player)]
 #[read_component(Point)]
 pub fn tooltip(ecs: &SubWorld, #[resource] mouse_pos: &Point, #[resource] camera: &Camera) {
-    let mut fov = <&FieldOfView>::query().filter(component::<Player>());
-    let player_fov = fov.iter(ecs).nth(0).unwrap();
-
     let mut draw_batch = DrawBatch::new();
     draw_batch.target(ConsoleLayer::Hud.into());
 
     let map_pos = determine_map_pos(*mouse_pos, camera);
+    let player_fov = player_fov(ecs);
     <(Entity, &Point, &Name)>::query()
         .iter(ecs)
         .filter(|(_, pos, _)| **pos == map_pos && player_fov.visible_tiles.contains(&pos))

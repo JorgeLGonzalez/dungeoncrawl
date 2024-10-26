@@ -3,6 +3,7 @@ mod combat;
 mod end_turn;
 mod entity_render;
 mod fov;
+mod helpers;
 mod hud;
 mod map_render;
 mod movement;

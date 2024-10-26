@@ -1,3 +1,4 @@
+use super::helpers::player_fov;
 use crate::prelude::*;
 
 #[system]
@@ -34,12 +35,4 @@ fn determine_glyph(Point { x, y, .. }: Point, map: &Map) -> u16 {
 
 fn determine_pos(absolute_pos: Point, camera: &Camera) -> Point {
     absolute_pos - Point::new(camera.left_x, camera.top_y)
-}
-
-fn player_fov<'a>(ecs: &'a SubWorld<'a>) -> &'a FieldOfView {
-    <&FieldOfView>::query()
-        .filter(component::<Player>())
-        .iter(ecs)
-        .nth(0)
-        .unwrap()
 }
