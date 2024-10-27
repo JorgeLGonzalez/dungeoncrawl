@@ -9,7 +9,7 @@ use crate::prelude::*;
 use cell_automata_architect::CellAutomataArchitect;
 use drunkard_walk_architect::DrunkardsWalkArchitect;
 use map_distance::MapDistance;
-use prefab::apply_prefab;
+use prefab::{PrefabVault, FORTRESS};
 use rooms_architect::RoomsArchitect;
 
 const NUM_ROOMS: usize = 20;
@@ -38,7 +38,7 @@ impl MapBuilder {
         println!("Building map using {}", architect.name());
 
         let mut mb = architect.new(rng);
-        apply_prefab(&mut mb, rng);
+        PrefabVault::new(FORTRESS).apply(&mut mb, rng);
 
         mb
     }
