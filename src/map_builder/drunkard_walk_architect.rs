@@ -12,25 +12,15 @@ impl DrunkardsWalkArchitect {
         let mut drunkard_pos = start.clone();
         let mut distance_staggered = 0;
 
-        loop {
-            let drunk_idx = map.point2d_to_index(drunkard_pos);
-            map.tiles[drunk_idx] = TileType::Floor;
+        while distance_staggered <= STAGGER_DISTANCE {
+            to_floor(drunkard_pos, map);
 
-            match rng.range(0, 4) {
-                0 => drunkard_pos.x -= 1,
-                1 => drunkard_pos.x += 1,
-                2 => drunkard_pos.y -= 1,
-                _ => drunkard_pos.y += 1,
-            }
-
+            step(&mut drunkard_pos, rng);
             if !map.in_bounds(drunkard_pos) {
                 break;
             }
 
             distance_staggered += 1;
-            if distance_staggered > STAGGER_DISTANCE {
-                break;
-            }
         }
     }
 
@@ -72,4 +62,18 @@ fn insufficient_floor(mb: &MapBuilder) -> bool {
         .filter(|t| **t == TileType::Floor)
         .count()
         < DESIRED_FLOOR
+}
+
+fn to_floor(pos: Point, map: &mut Map) {
+    let idx = map.point2d_to_index(pos);
+    map.tiles[idx] = TileType::Floor;
+}
+
+fn step(pos: &mut Point, rng: &mut RandomNumberGenerator) {
+    match rng.range(0, 4) {
+        0 => pos.x -= 1,
+        1 => pos.x += 1,
+        2 => pos.y -= 1,
+        _ => pos.y += 1,
+    }
 }
