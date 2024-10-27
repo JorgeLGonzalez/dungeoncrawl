@@ -1,11 +1,11 @@
 mod cell_automata_architect;
-mod drunkard;
+mod drunkard_walk_architect;
 mod empty_architect;
 mod map_distance;
 mod rooms_architect;
 
 use crate::prelude::*;
-use drunkard::DrunkardsWalkArchitect;
+use drunkard_walk_architect::DrunkardsWalkArchitect;
 use map_distance::MapDistance;
 
 const NUM_ROOMS: usize = 20;
