@@ -37,6 +37,8 @@ mod prelude {
     }
 }
 
+use std::process::Command;
+
 use prelude::*;
 use systems::{build_input_scheduler, build_monster_scheduler, build_player_scheduler};
 
@@ -91,6 +93,10 @@ impl State {
     }
 
     fn restart(&mut self) {
+        Command::new("clear")
+            .status()
+            .expect("Failed to clear terminal");
+
         let mut rng = RandomNumberGenerator::new();
         let mb = MapBuilder::new(&mut rng);
         self.ecs = World::default();
