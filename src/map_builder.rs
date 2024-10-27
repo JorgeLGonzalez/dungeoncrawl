@@ -2,12 +2,14 @@ mod cell_automata_architect;
 mod drunkard_walk_architect;
 mod empty_architect;
 mod map_distance;
+mod prefab;
 mod rooms_architect;
 
 use crate::prelude::*;
 use cell_automata_architect::CellAutomataArchitect;
 use drunkard_walk_architect::DrunkardsWalkArchitect;
 use map_distance::MapDistance;
+use prefab::apply_prefab;
 use rooms_architect::RoomsArchitect;
 
 const NUM_ROOMS: usize = 20;
@@ -35,7 +37,10 @@ impl MapBuilder {
 
         println!("Building map using {}", architect.name());
 
-        architect.new(rng)
+        let mut mb = architect.new(rng);
+        apply_prefab(&mut mb, rng);
+
+        mb
     }
 
     fn create(fill: TileType) -> Self {
