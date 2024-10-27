@@ -1,10 +1,10 @@
-mod automata;
+mod cell_automata_architect;
 mod empty_architect;
 mod map_distance;
 mod rooms_architect;
 
 use crate::prelude::*;
-use automata::CellAutomataArchitect;
+use cell_automata_architect::CellAutomataArchitect;
 use map_distance::MapDistance;
 
 const NUM_ROOMS: usize = 20;

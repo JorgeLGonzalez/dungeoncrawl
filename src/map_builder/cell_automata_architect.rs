@@ -43,11 +43,11 @@ impl CellAutomataArchitect {
             for x in 1..SCREEN_WIDTH - 1 {
                 let neighbors = self.count_neighbors(x, y, map);
                 let idx = map_idx(x, y);
-                if neighbors > 4 || neighbors == 0 {
-                    new_tiles[idx] = TileType::Wall;
+                new_tiles[idx] = if neighbors > 4 || neighbors == 0 {
+                    TileType::Wall
                 } else {
-                    new_tiles[idx] = TileType::Floor;
-                }
+                    TileType::Floor
+                };
             }
         }
 
@@ -57,18 +57,19 @@ impl CellAutomataArchitect {
     fn random_noise_map(&mut self, rng: &mut RandomNumberGenerator, map: &mut Map) {
         map.tiles.iter_mut().for_each(|t| {
             let roll = rng.range(0, 100);
-            if roll > 55 {
-                *t = TileType::Floor;
+
+            *t = if roll > 55 {
+                TileType::Floor
             } else {
-                *t = TileType::Wall;
-            }
+                TileType::Wall
+            };
         });
     }
 }
 
 impl MapArchitect for CellAutomataArchitect {
     fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder {
-        let mut mb = MapBuilder::create(TileType::Wall);
+        let mut mb = MapBuilder::create(TileType::Floor);
         self.random_noise_map(rng, &mut mb.map);
         for _ in 0..10 {
             self.iteration(&mut mb.map);
