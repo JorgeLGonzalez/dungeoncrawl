@@ -11,13 +11,7 @@ impl<'a> MapDistance<'a> {
         Self { map, origin }
     }
 
-    pub fn find_farthest(&self) -> Point {
-        let farthest_idx = self.enum_dijkstra().max_by(distance).unwrap().pos_idx;
-
-        self.map.index_to_point2d(farthest_idx)
-    }
-
-    fn create_dijkstra_map(&self) -> DijkstraMap {
+    pub fn create_dijkstra_map(&self) -> DijkstraMap {
         DijkstraMap::new(
             SCREEN_WIDTH,
             SCREEN_HEIGHT,
@@ -27,7 +21,13 @@ impl<'a> MapDistance<'a> {
         )
     }
 
-    fn enum_dijkstra(&self) -> impl Iterator<Item = DijkstraLocation> {
+    pub fn find_farthest(&self) -> Point {
+        let farthest_idx = self.enum_dijkstra().max_by(distance).unwrap().pos_idx;
+
+        self.map.index_to_point2d(farthest_idx)
+    }
+
+    pub fn enum_dijkstra(&self) -> impl Iterator<Item = DijkstraLocation> {
         let dijkstra_map = self.create_dijkstra_map();
 
         const UNREACHABLE: f32 = f32::MAX;
@@ -44,7 +44,7 @@ fn distance(a: &DijkstraLocation, b: &DijkstraLocation) -> Ordering {
     a.distance.partial_cmp(&b.distance).unwrap()
 }
 
-struct DijkstraLocation {
+pub struct DijkstraLocation {
     pub distance: f32,
     pub pos_idx: usize,
 }

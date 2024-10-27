@@ -1,4 +1,4 @@
-use super::MapArchitect;
+use super::{map_distance::MapDistance, MapArchitect};
 use crate::prelude::*;
 
 const DESIRED_FLOOR: usize = NUM_TILES / 3;
@@ -40,32 +40,16 @@ impl MapArchitect for DrunkardsWalkArchitect {
         let mut mb = MapBuilder::create(TileType::Wall);
         let center = Point::new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
         self.drunkard(&center, rng, &mut mb.map);
-        while mb
-            .map
-            .tiles
-            .iter()
-            .filter(|t| **t == TileType::Floor)
-            .count()
-            < DESIRED_FLOOR
-        {
+        while insufficient_floor(&mb) {
             self.drunkard(
                 &Point::new(rng.range(0, SCREEN_WIDTH), rng.range(0, SCREEN_HEIGHT)),
                 rng,
                 &mut mb.map,
             );
-            let dijkstra_map = DijkstraMap::new(
-                SCREEN_WIDTH,
-                SCREEN_HEIGHT,
-                &vec![mb.map.point2d_to_index(center)],
-                &mb.map,
-                1024.0,
-            );
-            dijkstra_map
-                .map
-                .iter()
-                .enumerate()
-                .filter(|(_, distance)| *distance > &2000.0)
-                .for_each(|(idx, _)| mb.map.tiles[idx] = TileType::Wall);
+            MapDistance::new(&mb.map, center)
+                .enum_dijkstra()
+                .filter(|l| l.distance > 2000.0)
+                .for_each(|l| mb.map.tiles[l.pos_idx] = TileType::Wall);
         }
 
         mb.monster_spawns = mb.spawn_monsters(&center, rng);
@@ -74,4 +58,13 @@ impl MapArchitect for DrunkardsWalkArchitect {
 
         mb
     }
+}
+
+fn insufficient_floor(mb: &MapBuilder) -> bool {
+    mb.map
+        .tiles
+        .iter()
+        .filter(|t| **t == TileType::Floor)
+        .count()
+        < DESIRED_FLOOR
 }
