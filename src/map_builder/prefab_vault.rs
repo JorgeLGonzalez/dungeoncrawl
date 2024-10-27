@@ -1,19 +1,5 @@
 use crate::prelude::*;
 
-pub const FORTRESS: &str = "
-------------
----######---
----#----#---
----#-M--#---
--###----###-
---M------M--
--###----###-
----#----#---
----#----#---
----######---
-------------
-";
-
 pub struct PrefabVault {
     blueprint: String,
     height: i32,
