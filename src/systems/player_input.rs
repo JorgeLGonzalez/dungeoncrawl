@@ -27,6 +27,7 @@ pub fn player_input(
             commands.extend(m);
         }
         Action::None => (),
+        Action::ShowPlayerPosition => println!(">>>Player at {:?}", pos),
     };
 
     if take_turn {
@@ -52,6 +53,10 @@ fn determine_action(
 ) -> Action {
     if key.is_none() {
         return Action::None;
+    }
+
+    if matches!(key, Some(VirtualKeyCode::P)) {
+        return Action::ShowPlayerPosition;
     }
 
     if !attacks.is_empty() {
@@ -102,6 +107,7 @@ enum Action {
     Heal,
     Move(MoveCommandVec),
     None,
+    ShowPlayerPosition,
 }
 
 type AttackCommandVec = Vec<((), WantsToAttack)>;
