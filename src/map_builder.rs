@@ -1,10 +1,11 @@
+mod automata;
 mod empty_architect;
 mod map_distance;
 mod rooms_architect;
 
 use crate::prelude::*;
+use automata::CellAutomataArchitect;
 use map_distance::MapDistance;
-use rooms_architect::RoomsArchitect;
 
 const NUM_ROOMS: usize = 20;
 
@@ -22,7 +23,7 @@ pub struct MapBuilder {
 
 impl MapBuilder {
     pub fn new(rng: &mut RandomNumberGenerator) -> Self {
-        let mut architect = RoomsArchitect;
+        let mut architect = CellAutomataArchitect;
 
         architect.new(rng)
     }
@@ -91,6 +92,31 @@ impl MapBuilder {
 
     fn find_farthest(&self) -> Point {
         MapDistance::new(&self.map, self.player_start).find_farthest()
+    }
+
+    fn spawn_monsters(&self, start: &Point, rng: &mut RandomNumberGenerator) -> Vec<Point> {
+        const NUM_MONSTERS: usize = 50;
+        let mut spawnable_tiles: Vec<Point> = self
+            .map
+            .tiles
+            .iter()
+            .enumerate()
+            .filter(|(idx, t)| {
+                **t == TileType::Floor
+                    && DistanceAlg::Pythagoras.distance2d(*start, self.map.index_to_point2d(*idx))
+                        > 10.0
+            })
+            .map(|(idx, _)| self.map.index_to_point2d(idx))
+            .collect();
+
+        let mut spawns = Vec::new();
+        for _ in 0..NUM_MONSTERS {
+            let target_index = rng.random_slice_index(&spawnable_tiles).unwrap();
+            spawns.push(spawnable_tiles[target_index].clone());
+            spawnable_tiles.remove(target_index);
+        }
+
+        spawnable_tiles
     }
 
     fn tunnel_horizontally(&mut self, x1: i32, x2: i32, y: i32) {
