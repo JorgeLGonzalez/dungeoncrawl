@@ -5,8 +5,10 @@ mod map_distance;
 mod rooms_architect;
 
 use crate::prelude::*;
+use cell_automata_architect::CellAutomataArchitect;
 use drunkard_walk_architect::DrunkardsWalkArchitect;
 use map_distance::MapDistance;
+use rooms_architect::RoomsArchitect;
 
 const NUM_ROOMS: usize = 20;
 
@@ -24,7 +26,11 @@ pub struct MapBuilder {
 
 impl MapBuilder {
     pub fn new(rng: &mut RandomNumberGenerator) -> Self {
-        let mut architect = DrunkardsWalkArchitect;
+        let mut architect: Box<dyn MapArchitect> = match rng.range(0, 3) {
+            0 => Box::new(DrunkardsWalkArchitect),
+            1 => Box::new(RoomsArchitect),
+            _ => Box::new(CellAutomataArchitect),
+        };
 
         architect.new(rng)
     }
