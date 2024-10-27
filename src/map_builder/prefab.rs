@@ -47,12 +47,12 @@ pub fn apply_prefab(mb: &mut MapBuilder, rng: &mut RandomNumberGenerator) {
 
         if can_place {
             println!(
-                "Placing at ({},{}) vault of {}x{} area={}",
+                "Placing {}x{} (area={}) prefab vault at ({},{}) on attempt {attempts}",
+                dimensions.width(),
+                dimensions.height(),
+                dimensions.height() * dimensions.width(),
                 dimensions.x1,
                 dimensions.y1,
-                dimensions.height(),
-                dimensions.width(),
-                dimensions.height() * dimensions.width()
             );
             placement = Some(Point::new(dimensions.x1, dimensions.y1));
             let points = dimensions.point_set();
@@ -86,5 +86,7 @@ pub fn apply_prefab(mb: &mut MapBuilder, rng: &mut RandomNumberGenerator) {
                 i += 1;
             }
         }
+    } else {
+        println!("*** Unable to place prefab vault");
     }
 }
