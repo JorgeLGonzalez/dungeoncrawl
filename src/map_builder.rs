@@ -39,7 +39,7 @@ impl MapBuilder {
         println!("Building map using {}", architect.name());
 
         let mut mb = architect.new(rng);
-        PrefabVault::new(prefabs::FORTRESS).apply(&mut mb, rng);
+        PrefabVault::new(prefabs::FORTRESS, rng).apply(&mut mb);
 
         mb
     }

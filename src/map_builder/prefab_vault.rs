@@ -2,23 +2,25 @@ use crate::prelude::*;
 
 use super::map_distance::MapDistance;
 
-pub struct PrefabVault {
+pub struct PrefabVault<'a> {
     blueprint: String,
     height: i32,
+    rng: &'a mut RandomNumberGenerator,
     width: i32,
 }
 
-impl PrefabVault {
-    pub fn new(blueprint: &str) -> Self {
+impl<'a> PrefabVault<'a> {
+    pub fn new(blueprint: &str, rng: &'a mut RandomNumberGenerator) -> Self {
         Self {
             blueprint: blueprint.to_string(),
             height: 11,
+            rng,
             width: 12,
         }
     }
 
-    pub fn apply(&self, mb: &mut MapBuilder, rng: &mut RandomNumberGenerator) {
-        if let Some(placement) = self.try_place(mb, rng) {
+    pub fn apply(&mut self, mb: &mut MapBuilder) {
+        if let Some(placement) = self.try_place(mb) {
             let blueprint: Vec<char> = self.trim_newlines();
             let mut blueprint_idx = 0;
             for ty in placement.y..placement.y + self.height {
@@ -32,10 +34,10 @@ impl PrefabVault {
         }
     }
 
-    fn create_vault(&self, rng: &mut RandomNumberGenerator) -> Rect {
+    fn create_vault(&mut self) -> Rect {
         Rect::with_size(
-            rng.range(0, SCREEN_WIDTH - self.width),
-            rng.range(0, SCREEN_HEIGHT - self.height),
+            self.rng.range(0, SCREEN_WIDTH - self.width),
+            self.rng.range(0, SCREEN_HEIGHT - self.height),
             self.width,
             self.height,
         )
@@ -48,13 +50,13 @@ impl PrefabVault {
             .collect()
     }
 
-    fn try_place(&self, mb: &mut MapBuilder, rng: &mut RandomNumberGenerator) -> Option<Point> {
+    fn try_place(&mut self, mb: &mut MapBuilder) -> Option<Point> {
         let mut placement = None;
         let dijkstra_map = MapDistance::new(&mb.map, mb.player_start).create_dijkstra_map();
 
         let mut attempts = 0;
         while placement.is_none() && attempts < 10 {
-            let vault = self.create_vault(rng);
+            let vault = self.create_vault();
 
             if can_place(&vault, &dijkstra_map, mb) {
                 placement = Some(Point::new(vault.x1, vault.y1));
