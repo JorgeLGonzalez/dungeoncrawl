@@ -13,6 +13,7 @@ use rooms_architect::RoomsArchitect;
 const NUM_ROOMS: usize = 20;
 
 trait MapArchitect {
+    fn name(&self) -> String;
     fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder;
 }
 
@@ -31,6 +32,8 @@ impl MapBuilder {
             1 => Box::new(RoomsArchitect),
             _ => Box::new(CellAutomataArchitect),
         };
+
+        println!("Building map using {}", architect.name());
 
         architect.new(rng)
     }

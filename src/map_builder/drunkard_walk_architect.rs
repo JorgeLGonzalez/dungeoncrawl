@@ -42,6 +42,10 @@ impl DrunkardsWalkArchitect {
 }
 
 impl MapArchitect for DrunkardsWalkArchitect {
+    fn name(&self) -> String {
+        "DrunkardsWalkArchitect".to_string()
+    }
+
     fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder {
         let mut mb = MapBuilder::create(TileType::Wall);
 

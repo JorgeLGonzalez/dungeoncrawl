@@ -4,6 +4,10 @@ use crate::prelude::*;
 pub struct EmptyArchitect;
 
 impl MapArchitect for EmptyArchitect {
+    fn name(&self) -> String {
+        "EmptyArchitect".to_string()
+    }
+
     fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder {
         let mut mb = MapBuilder::create(TileType::Floor);
         mb.player_start = Point::new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);

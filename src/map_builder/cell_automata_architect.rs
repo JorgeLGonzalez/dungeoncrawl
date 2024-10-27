@@ -68,6 +68,10 @@ impl CellAutomataArchitect {
 }
 
 impl MapArchitect for CellAutomataArchitect {
+    fn name(&self) -> String {
+        "CellAutomataArchitect".to_string()
+    }
+
     fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder {
         let mut mb = MapBuilder::create(TileType::Floor);
         self.random_noise_map(rng, &mut mb.map);

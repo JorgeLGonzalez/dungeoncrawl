@@ -4,6 +4,10 @@ use crate::prelude::*;
 pub struct RoomsArchitect;
 
 impl MapArchitect for RoomsArchitect {
+    fn name(&self) -> String {
+        "RoomsArchitect".to_string()
+    }
+
     fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder {
         let mut mb = MapBuilder::create(TileType::Wall);
         mb.build_random_rooms(rng);
