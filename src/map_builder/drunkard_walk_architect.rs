@@ -33,27 +33,32 @@ impl DrunkardsWalkArchitect {
             }
         }
     }
-}
 
-impl MapArchitect for DrunkardsWalkArchitect {
-    fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder {
-        let mut mb = MapBuilder::create(TileType::Wall);
-        let center = Point::new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-        self.drunkard(&center, rng, &mut mb.map);
+    fn tunnel(&mut self, mb: &mut MapBuilder, rng: &mut RandomNumberGenerator) {
+        self.drunkard(&mb.player_start, rng, &mut mb.map);
+
         while insufficient_floor(&mb) {
             self.drunkard(
                 &Point::new(rng.range(0, SCREEN_WIDTH), rng.range(0, SCREEN_HEIGHT)),
                 rng,
                 &mut mb.map,
             );
-            MapDistance::new(&mb.map, center)
+            MapDistance::new(&mb.map, mb.player_start)
                 .enum_dijkstra()
                 .filter(|l| l.distance > 2000.0)
                 .for_each(|l| mb.map.tiles[l.pos_idx] = TileType::Wall);
         }
+    }
+}
 
-        mb.monster_spawns = mb.spawn_monsters(&center, rng);
-        mb.player_start = center;
+impl MapArchitect for DrunkardsWalkArchitect {
+    fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder {
+        let mut mb = MapBuilder::create(TileType::Wall);
+
+        mb.player_start = Point::new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+        self.tunnel(&mut mb, rng);
+
+        mb.monster_spawns = mb.spawn_monsters(&mb.player_start, rng);
         mb.amulet_start = mb.find_farthest();
 
         mb
