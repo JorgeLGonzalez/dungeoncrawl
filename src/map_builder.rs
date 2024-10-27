@@ -1,10 +1,11 @@
 mod cell_automata_architect;
+mod drunkard;
 mod empty_architect;
 mod map_distance;
 mod rooms_architect;
 
 use crate::prelude::*;
-use cell_automata_architect::CellAutomataArchitect;
+use drunkard::DrunkardsWalkArchitect;
 use map_distance::MapDistance;
 
 const NUM_ROOMS: usize = 20;
@@ -23,7 +24,7 @@ pub struct MapBuilder {
 
 impl MapBuilder {
     pub fn new(rng: &mut RandomNumberGenerator) -> Self {
-        let mut architect = CellAutomataArchitect;
+        let mut architect = DrunkardsWalkArchitect;
 
         architect.new(rng)
     }
@@ -95,7 +96,6 @@ impl MapBuilder {
     }
 
     fn spawn_monsters(&self, start: &Point, rng: &mut RandomNumberGenerator) -> Vec<Point> {
-        const NUM_MONSTERS: usize = 50;
         let mut spawnable_tiles: Vec<Point> = self
             .map
             .tiles
@@ -109,11 +109,11 @@ impl MapBuilder {
             .map(|(idx, _)| self.map.index_to_point2d(idx))
             .collect();
 
+        const NUM_MONSTERS: usize = 50;
         let mut spawns = Vec::new();
         for _ in 0..NUM_MONSTERS {
             let target_index = rng.random_slice_index(&spawnable_tiles).unwrap();
-            spawns.push(spawnable_tiles[target_index].clone());
-            spawnable_tiles.remove(target_index);
+            spawns.push(spawnable_tiles.remove(target_index));
         }
 
         spawnable_tiles
