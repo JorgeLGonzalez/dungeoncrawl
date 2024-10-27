@@ -1,37 +1,56 @@
+use super::map_distance::MapDistance;
 use crate::prelude::*;
 
-use super::map_distance::MapDistance;
-
 pub struct PrefabVault<'a> {
-    blueprint: String,
+    blueprint: Vec<char>,
+    dijkstra_map: DijkstraMap,
     height: i32,
+    mb: &'a mut MapBuilder,
     rng: &'a mut RandomNumberGenerator,
     width: i32,
 }
 
 impl<'a> PrefabVault<'a> {
-    pub fn new(blueprint: &str, rng: &'a mut RandomNumberGenerator) -> Self {
-        Self {
-            blueprint: blueprint.to_string(),
+    pub fn apply(blueprint: &str, mb: &'a mut MapBuilder, rng: &'a mut RandomNumberGenerator) {
+        let blueprint = blueprint
+            .chars()
+            .filter(|a| *a != '\r' && *a != '\n')
+            .collect();
+        let dijkstra_map = MapDistance::new(&mb.map, mb.player_start).create_dijkstra_map();
+
+        let mut placer = Self {
+            blueprint,
+            dijkstra_map,
             height: 11,
+            mb,
             rng,
             width: 12,
-        }
-    }
+        };
 
-    pub fn apply(&mut self, mb: &mut MapBuilder) {
-        if let Some(placement) = self.try_place(mb) {
-            let blueprint: Vec<char> = self.trim_newlines();
-            let mut blueprint_idx = 0;
-            for ty in placement.y..placement.y + self.height {
-                for tx in placement.x..placement.x + self.width {
-                    set_tile(blueprint[blueprint_idx], Point::new(tx, ty), mb);
-                    blueprint_idx += 1;
-                }
-            }
+        if let Some(placement) = placer.find_placement() {
+            placer.map_vault(placement);
         } else {
             println!("*** Unable to place prefab vault");
         }
+    }
+
+    fn can_place(&self, vault: &Rect) -> bool {
+        let mut can_place = false;
+        vault.for_each(|pt| {
+            let idx = self.mb.map.point2d_to_index(pt);
+            let distance = self.dijkstra_map.map[idx];
+
+            if distance < 2000.0 && distance > 20.0 && self.mb.amulet_start != pt {
+                can_place = true;
+            }
+        });
+
+        can_place
+    }
+
+    fn clear_monsters(&mut self, vault: &Rect) {
+        let points = vault.point_set();
+        self.mb.monster_spawns.retain(|pt| !points.contains(pt));
     }
 
     fn create_vault(&mut self) -> Rect {
@@ -43,24 +62,16 @@ impl<'a> PrefabVault<'a> {
         )
     }
 
-    fn trim_newlines(&self) -> Vec<char> {
-        self.blueprint
-            .chars()
-            .filter(|a| *a != '\r' && *a != '\n')
-            .collect()
-    }
-
-    fn try_place(&mut self, mb: &mut MapBuilder) -> Option<Point> {
+    fn find_placement(&mut self) -> Option<Point> {
         let mut placement = None;
-        let dijkstra_map = MapDistance::new(&mb.map, mb.player_start).create_dijkstra_map();
 
         let mut attempts = 0;
         while placement.is_none() && attempts < 10 {
             let vault = self.create_vault();
 
-            if can_place(&vault, &dijkstra_map, mb) {
+            if self.can_place(&vault) {
                 placement = Some(Point::new(vault.x1, vault.y1));
-                clear_monsters(&vault, mb);
+                self.clear_monsters(&vault);
                 log_placement(&vault, attempts);
             }
 
@@ -69,24 +80,29 @@ impl<'a> PrefabVault<'a> {
 
         placement
     }
-}
 
-fn can_place(vault: &Rect, dijkstra_map: &DijkstraMap, mb: &MapBuilder) -> bool {
-    let mut can_place = false;
-    vault.for_each(|pt| {
-        let idx = mb.map.point2d_to_index(pt);
-        let distance = dijkstra_map.map[idx];
-        if distance < 2000.0 && distance > 20.0 && mb.amulet_start != pt {
-            can_place = true;
+    fn map_vault(&mut self, placement: Point) {
+        let mut blueprint_idx = 0;
+        for ty in placement.y..placement.y + self.height {
+            for tx in placement.x..placement.x + self.width {
+                self.set_tile(blueprint_idx, Point::new(tx, ty));
+                blueprint_idx += 1;
+            }
         }
-    });
+    }
 
-    can_place
-}
-
-fn clear_monsters(vault: &Rect, mb: &mut MapBuilder) {
-    let points = vault.point_set();
-    mb.monster_spawns.retain(|pt| !points.contains(pt));
+    fn set_tile(&mut self, blueprint_idx: usize, pos: Point) {
+        let idx = self.mb.map.point2d_to_index(pos);
+        match self.blueprint[blueprint_idx] {
+            'M' => {
+                self.mb.map.tiles[idx] = TileType::Floor;
+                self.mb.monster_spawns.push(pos);
+            }
+            '-' => self.mb.map.tiles[idx] = TileType::Floor,
+            '#' => self.mb.map.tiles[idx] = TileType::Wall,
+            _ => println!("No idea what to do with [{blueprint_idx}]"),
+        }
+    }
 }
 
 fn log_placement(vault: &Rect, attempts: i32) {
@@ -98,17 +114,4 @@ fn log_placement(vault: &Rect, attempts: i32) {
         vault.x1,
         vault.y1,
     );
-}
-
-fn set_tile(blueprint_symbol: char, pos: Point, mb: &mut MapBuilder) {
-    let idx = mb.map.point2d_to_index(pos);
-    match blueprint_symbol {
-        'M' => {
-            mb.map.tiles[idx] = TileType::Floor;
-            mb.monster_spawns.push(pos);
-        }
-        '-' => mb.map.tiles[idx] = TileType::Floor,
-        '#' => mb.map.tiles[idx] = TileType::Wall,
-        _ => println!("No idea what to do with [{blueprint_symbol}]"),
-    }
 }
