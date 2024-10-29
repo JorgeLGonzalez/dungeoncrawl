@@ -21,18 +21,13 @@ pub fn map_render(
                 draw_batch.set(
                     determine_pos(pt, camera),
                     determine_color(&pt, player_fov),
-                    determine_glyph(pt, map, theme),
+                    theme.tile_to_render(map.tiles[map_idx(x, y)]),
                 );
             }
         }
     }
 
     draw_batch.submit(0).expect("Batch error");
-}
-
-fn determine_glyph(Point { x, y, .. }: Point, map: &Map, theme: &Box<dyn MapTheme>) -> u16 {
-    let idx = map_idx(x, y);
-    theme.tile_to_render(map.tiles[idx])
 }
 
 fn determine_pos(absolute_pos: Point, camera: &Camera) -> Point {
