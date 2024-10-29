@@ -73,7 +73,7 @@ impl State {
         let mb = MapBuilder::new(&mut rng);
         let mut ecs = World::default();
         spawn(&mut ecs, &mut rng, &mb);
-        let resources = create_resources(mb.map, mb.player_start, mb.theme);
+        let resources = create_resources(mb);
 
         Self {
             ecs,
@@ -101,7 +101,7 @@ impl State {
         let mb = MapBuilder::new(&mut rng);
         self.ecs = World::default();
         spawn(&mut self.ecs, &mut rng, &mb);
-        self.resources = create_resources(mb.map, mb.player_start, mb.theme);
+        self.resources = create_resources(mb);
     }
 
     fn victory(&mut self, ctx: &mut BTerm) {
@@ -146,12 +146,12 @@ impl GameState for State {
     }
 }
 
-fn create_resources(map: Map, player_start: Point, theme: Box<dyn MapTheme>) -> Resources {
+fn create_resources(mb: MapBuilder) -> Resources {
     let mut resources = Resources::default();
-    resources.insert(map);
-    resources.insert(Camera::new(player_start));
+    resources.insert(mb.map);
+    resources.insert(Camera::new(mb.player_start));
     resources.insert(TurnState::AwaitingInput);
-    resources.insert(theme);
+    resources.insert(mb.theme);
 
     resources
 }
