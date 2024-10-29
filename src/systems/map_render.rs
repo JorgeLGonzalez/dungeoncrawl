@@ -4,7 +4,12 @@ use crate::prelude::*;
 #[system]
 #[read_component(FieldOfView)]
 #[read_component(Player)]
-pub fn map_render(ecs: &SubWorld, #[resource] map: &Map, #[resource] camera: &Camera) {
+pub fn map_render(
+    ecs: &SubWorld,
+    #[resource] map: &Map,
+    #[resource] camera: &Camera,
+    #[resource] theme: &Box<dyn MapTheme>,
+) {
     let player_fov = player_fov(ecs);
 
     let mut draw_batch = DrawBatch::new();
@@ -16,7 +21,7 @@ pub fn map_render(ecs: &SubWorld, #[resource] map: &Map, #[resource] camera: &Ca
                 draw_batch.set(
                     determine_pos(pt, camera),
                     determine_color(&pt, player_fov),
-                    determine_glyph(pt, map),
+                    determine_glyph(pt, map, theme),
                 );
             }
         }
@@ -25,12 +30,9 @@ pub fn map_render(ecs: &SubWorld, #[resource] map: &Map, #[resource] camera: &Ca
     draw_batch.submit(0).expect("Batch error");
 }
 
-fn determine_glyph(Point { x, y, .. }: Point, map: &Map) -> u16 {
+fn determine_glyph(Point { x, y, .. }: Point, map: &Map, theme: &Box<dyn MapTheme>) -> u16 {
     let idx = map_idx(x, y);
-    match map.tiles[idx] {
-        TileType::Floor => to_cp437('.'),
-        TileType::Wall => to_cp437('#'),
-    }
+    theme.tile_to_render(map.tiles[idx])
 }
 
 fn determine_pos(absolute_pos: Point, camera: &Camera) -> Point {

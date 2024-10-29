@@ -5,6 +5,7 @@ mod map_distance;
 mod prefab_vault;
 mod prefabs;
 mod rooms_architect;
+pub mod themes;
 
 use crate::prelude::*;
 use cell_automata_architect::CellAutomataArchitect;
@@ -12,6 +13,7 @@ use drunkard_walk_architect::DrunkardsWalkArchitect;
 use map_distance::MapDistance;
 use prefab_vault::PrefabVault;
 use rooms_architect::RoomsArchitect;
+use themes::{DungeonTheme, ForestTheme};
 
 const NUM_ROOMS: usize = 20;
 
@@ -20,12 +22,17 @@ trait MapArchitect {
     fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder;
 }
 
+pub trait MapTheme: Sync + Send {
+    fn tile_to_render(&self, tile_type: TileType) -> FontCharType;
+}
+
 pub struct MapBuilder {
     pub amulet_start: Point,
     pub map: Map,
     pub monster_spawns: Vec<Point>,
     pub rooms: Vec<Rect>,
     pub player_start: Point,
+    pub theme: Box<dyn MapTheme>,
 }
 
 impl MapBuilder {
@@ -41,6 +48,11 @@ impl MapBuilder {
         let mut mb = architect.new(rng);
         PrefabVault::apply(prefabs::FORTRESS, &mut mb, rng);
 
+        mb.theme = match rng.range(0, 2) {
+            0 => DungeonTheme::new(),
+            _ => ForestTheme::new(),
+        };
+
         mb
     }
 
@@ -51,6 +63,7 @@ impl MapBuilder {
             monster_spawns: Vec::new(),
             rooms: Vec::new(),
             player_start: Point::zero(),
+            theme: themes::DungeonTheme::new(),
         };
         mb.fill(fill);
 

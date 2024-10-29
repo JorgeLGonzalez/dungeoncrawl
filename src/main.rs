@@ -37,9 +37,9 @@ mod prelude {
     }
 }
 
-use std::process::Command;
-
+use map_builder::MapTheme;
 use prelude::*;
+use std::process::Command;
 use systems::{build_input_scheduler, build_monster_scheduler, build_player_scheduler};
 
 fn main() -> BError {
@@ -73,7 +73,7 @@ impl State {
         let mb = MapBuilder::new(&mut rng);
         let mut ecs = World::default();
         spawn(&mut ecs, &mut rng, &mb);
-        let resources = create_resources(mb.map, mb.player_start);
+        let resources = create_resources(mb.map, mb.player_start, mb.theme);
 
         Self {
             ecs,
@@ -101,7 +101,7 @@ impl State {
         let mb = MapBuilder::new(&mut rng);
         self.ecs = World::default();
         spawn(&mut self.ecs, &mut rng, &mb);
-        self.resources = create_resources(mb.map, mb.player_start);
+        self.resources = create_resources(mb.map, mb.player_start, mb.theme);
     }
 
     fn victory(&mut self, ctx: &mut BTerm) {
@@ -146,11 +146,12 @@ impl GameState for State {
     }
 }
 
-fn create_resources(map: Map, player_start: Point) -> Resources {
+fn create_resources(map: Map, player_start: Point, theme: Box<dyn MapTheme>) -> Resources {
     let mut resources = Resources::default();
     resources.insert(map);
     resources.insert(Camera::new(player_start));
     resources.insert(TurnState::AwaitingInput);
+    resources.insert(theme);
 
     resources
 }
