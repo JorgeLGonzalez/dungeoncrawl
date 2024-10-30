@@ -72,7 +72,7 @@ impl State {
         let mut rng = RandomNumberGenerator::new();
         let mb = MapBuilder::new(&mut rng);
         let mut ecs = World::default();
-        spawn(&mut ecs, &mut rng, &mb);
+        Spawner::spawn(&mut ecs, &mut rng, &mb);
         let resources = create_resources(mb);
 
         Self {
@@ -100,7 +100,7 @@ impl State {
         let mut rng = RandomNumberGenerator::new();
         let mb = MapBuilder::new(&mut rng);
         self.ecs = World::default();
-        spawn(&mut self.ecs, &mut rng, &mb);
+        Spawner::spawn(&mut self.ecs, &mut rng, &mb);
         self.resources = create_resources(mb);
     }
 

@@ -1,78 +1,87 @@
 use crate::prelude::*;
 
-pub fn spawn(ecs: &mut World, rng: &mut RandomNumberGenerator, map_builder: &MapBuilder) {
-    spawn_player(ecs, map_builder.player_start);
-    spawn_amulet_of_yala(ecs, map_builder.amulet_start);
-
-    map_builder
-        .monster_spawns
-        .iter()
-        .for_each(|pos| spawn_entity(ecs, rng, *pos));
+pub struct Spawner<'a> {
+    ecs: &'a mut World,
+    rng: &'a mut RandomNumberGenerator,
 }
 
-fn spawn_entity(ecs: &mut World, rng: &mut RandomNumberGenerator, pos: Point) {
-    let roll = rng.roll_dice(1, 6);
-    match roll {
-        1 => spawn_healing_potion(ecs, pos),
-        2 => spawn_magic_mapper(ecs, pos),
-        _ => spawn_monster(ecs, rng, pos),
-    };
-}
+impl<'a> Spawner<'a> {
+    pub fn spawn(ecs: &mut World, rng: &mut RandomNumberGenerator, map_builder: &MapBuilder) {
+        let mut spawner = Spawner { ecs, rng };
 
-fn spawn_amulet_of_yala(ecs: &mut World, pos: Point) {
-    ecs.push((
-        Item,
-        AmuletOfYala,
-        pos,
-        Render::new(ColorPair::new(WHITE, BLACK), to_cp437('/')),
-    ));
-}
+        spawner.spawn_player(map_builder.player_start);
+        spawner.spawn_amulet_of_yala(map_builder.amulet_start);
 
-fn spawn_healing_potion(ecs: &mut World, pos: Point) {
-    ecs.push((
-        Item,
-        pos,
-        Render::new(ColorPair::new(WHITE, BLACK), to_cp437('!')),
-        Name("Healing Potion".to_string()),
-        ProvidesHealing { amount: 6 },
-    ));
-}
+        map_builder
+            .monster_spawns
+            .iter()
+            .for_each(|pos| spawner.spawn_entity(*pos));
+    }
 
-fn spawn_magic_mapper(ecs: &mut World, pos: Point) {
-    ecs.push((
-        Item,
-        pos,
-        Render::new(ColorPair::new(WHITE, BLACK), to_cp437('{')),
-        Name("Dungeon Map".to_string()),
-        ProvidesDungeonMap,
-    ));
-}
+    fn spawn_entity(&mut self, pos: Point) {
+        let roll = self.rng.roll_dice(1, 6);
+        match roll {
+            1 => self.spawn_healing_potion(pos),
+            2 => self.spawn_magic_mapper(pos),
+            _ => self.spawn_monster(pos),
+        };
+    }
 
-fn spawn_monster(ecs: &mut World, rng: &mut RandomNumberGenerator, pos: Point) {
-    let (hp, name, glyph) = match rng.roll_dice(1, 10) {
-        1..=8 => goblin(),
-        _ => orc(),
-    };
+    fn spawn_amulet_of_yala(&mut self, pos: Point) {
+        self.ecs.push((
+            Item,
+            AmuletOfYala,
+            pos,
+            Render::new(ColorPair::new(WHITE, BLACK), to_cp437('/')),
+        ));
+    }
 
-    ecs.push((
-        ChasingPlayer {},
-        Enemy,
-        FieldOfView::new(6),
-        Health::new(hp, hp),
-        Name(name),
-        pos,
-        Render::new(ColorPair::new(WHITE, BLACK), glyph),
-    ));
-}
+    fn spawn_healing_potion(&mut self, pos: Point) {
+        self.ecs.push((
+            Item,
+            pos,
+            Render::new(ColorPair::new(WHITE, BLACK), to_cp437('!')),
+            Name("Healing Potion".to_string()),
+            ProvidesHealing::new(6),
+        ));
+    }
 
-fn spawn_player(ecs: &mut World, pos: Point) {
-    ecs.push((
-        FieldOfView::new(8),
-        Health::new(10, 10),
-        Player,
-        pos,
-        Render::new(ColorPair::new(WHITE, BLACK), to_cp437('@')),
-    ));
+    fn spawn_magic_mapper(&mut self, pos: Point) {
+        self.ecs.push((
+            Item,
+            pos,
+            Render::new(ColorPair::new(WHITE, BLACK), to_cp437('{')),
+            Name("Dungeon Map".to_string()),
+            ProvidesDungeonMap,
+        ));
+    }
+
+    fn spawn_monster(&mut self, pos: Point) {
+        let (hp, name, glyph) = match self.rng.roll_dice(1, 10) {
+            1..=8 => goblin(),
+            _ => orc(),
+        };
+
+        self.ecs.push((
+            ChasingPlayer {},
+            Enemy,
+            FieldOfView::new(6),
+            Health::new(hp, hp),
+            Name(name),
+            pos,
+            Render::new(ColorPair::new(WHITE, BLACK), glyph),
+        ));
+    }
+
+    fn spawn_player(&mut self, pos: Point) {
+        self.ecs.push((
+            FieldOfView::new(8),
+            Health::new(10, 10),
+            Player,
+            pos,
+            Render::new(ColorPair::new(WHITE, BLACK), to_cp437('@')),
+        ));
+    }
 }
 
 fn goblin() -> (i32, String, FontCharType) {

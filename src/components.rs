@@ -65,6 +65,12 @@ pub struct ProvidesHealing {
     pub amount: i32,
 }
 
+impl ProvidesHealing {
+    pub fn new(amount: i32) -> Self {
+        Self { amount }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ProvidesDungeonMap;
 
