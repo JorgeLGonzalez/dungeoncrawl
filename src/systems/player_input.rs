@@ -23,16 +23,7 @@ pub fn player_input(
         Action::Attack(a) => {
             commands.extend(a);
         }
-        Action::GetMagicItem => {
-            let mut items = <(Entity, &Item, &Point)>::query();
-            items
-                .iter(ecs)
-                .filter(|(_entity, _item, &item_pos)| item_pos == pos)
-                .for_each(|(entity, _item, _item_pos)| {
-                    commands.remove_component::<Point>(*entity);
-                    commands.add_component(*entity, Carried(player));
-                });
-        }
+        Action::GetMagicItem => pick_up(ecs, player, pos, commands),
         // note: heal should also be a command?
         Action::Heal => heal(ecs, player),
         Action::Move(m) => {
@@ -115,6 +106,16 @@ fn heal(ecs: &mut SubWorld, player: Entity) {
             println!("Healed to {}", health.current);
         }
     }
+}
+
+fn pick_up(ecs: &mut SubWorld, player: Entity, pos: Point, commands: &mut CommandBuffer) {
+    <(Entity, &Item, &Point)>::query()
+        .iter(ecs)
+        .filter(|(.., &item_pos)| item_pos == pos)
+        .for_each(|(entity, ..)| {
+            commands.remove_component::<Point>(*entity);
+            commands.add_component(*entity, Carried(player));
+        });
 }
 
 #[derive(PartialEq)]
