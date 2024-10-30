@@ -25,6 +25,14 @@ pub fn hud(ecs: &SubWorld) {
         format!("Health: {}/{}", player_health.current, player_health.max),
         ColorPair::new(WHITE, RED),
     );
+    draw_batch.submit(10000).expect("Batch error");
+
+    display_inventory(ecs);
+}
+
+fn display_inventory(ecs: &SubWorld) {
+    let mut draw_batch = DrawBatch::new();
+    draw_batch.target(ConsoleLayer::Hud.into());
 
     let player = <(Entity, &Player)>::query()
         .iter(ecs)
