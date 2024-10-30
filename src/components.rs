@@ -5,6 +5,9 @@ pub use crate::prelude::*;
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct AmuletOfYala; // YALA = Yet Another Lost Amulet :)
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct Carried(pub Entity);
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ChasingPlayer;
 

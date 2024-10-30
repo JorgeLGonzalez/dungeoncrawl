@@ -1,7 +1,9 @@
 use crate::prelude::*;
 
 #[system]
+#[read_component(Carried)]
 #[read_component(Enemy)]
+#[read_component(Item)]
 #[read_component(Player)]
 #[read_component(Point)]
 #[write_component(Health)]
@@ -20,6 +22,16 @@ pub fn player_input(
     match action {
         Action::Attack(a) => {
             commands.extend(a);
+        }
+        Action::GetMagicItem => {
+            let mut items = <(Entity, &Item, &Point)>::query();
+            items
+                .iter(ecs)
+                .filter(|(_entity, _item, &item_pos)| item_pos == pos)
+                .for_each(|(entity, _item, _item_pos)| {
+                    commands.remove_component::<Point>(*entity);
+                    commands.add_component(*entity, Carried(player));
+                });
         }
         // note: heal should also be a command?
         Action::Heal => heal(ecs, player),
@@ -53,6 +65,10 @@ fn determine_action(
 ) -> Action {
     if key.is_none() {
         return Action::None;
+    }
+
+    if matches!(key, Some(VirtualKeyCode::G)) {
+        return Action::GetMagicItem;
     }
 
     if matches!(key, Some(VirtualKeyCode::P)) {
@@ -104,6 +120,7 @@ fn heal(ecs: &mut SubWorld, player: Entity) {
 #[derive(PartialEq)]
 enum Action {
     Attack(AttackCommandVec),
+    GetMagicItem,
     Heal,
     Move(MoveCommandVec),
     None,
