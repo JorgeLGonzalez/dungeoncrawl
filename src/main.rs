@@ -37,7 +37,6 @@ mod prelude {
     }
 }
 
-use map_builder::MapTheme;
 use prelude::*;
 use std::process::Command;
 use systems::{build_input_scheduler, build_monster_scheduler, build_player_scheduler};
