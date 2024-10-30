@@ -2,6 +2,8 @@
 
 From [Hands-on Rust: Effective Learning through 2D Game Development and Play](https://pragprog.com/titles/hwrust/hands-on-rust/).
 
+See https://opengameart.org/ for more game art.
+
 ## Issue: periphery walls
 
 In the cell automata and drunkard walk builders, the floor often hits the screen boundary without walls. Is that expected? Regardless, it looks weird.

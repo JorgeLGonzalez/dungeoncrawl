@@ -7,7 +7,16 @@ pub fn spawn(ecs: &mut World, rng: &mut RandomNumberGenerator, map_builder: &Map
     map_builder
         .monster_spawns
         .iter()
-        .for_each(|pos| spawn_monster(ecs, rng, *pos));
+        .for_each(|pos| spawn_entity(ecs, rng, *pos));
+}
+
+fn spawn_entity(ecs: &mut World, rng: &mut RandomNumberGenerator, pos: Point) {
+    let roll = rng.roll_dice(1, 6);
+    match roll {
+        1 => spawn_healing_potion(ecs, pos),
+        2 => spawn_magic_mapper(ecs, pos),
+        _ => spawn_monster(ecs, rng, pos),
+    };
 }
 
 fn spawn_amulet_of_yala(ecs: &mut World, pos: Point) {
@@ -16,6 +25,26 @@ fn spawn_amulet_of_yala(ecs: &mut World, pos: Point) {
         AmuletOfYala,
         pos,
         Render::new(ColorPair::new(WHITE, BLACK), to_cp437('/')),
+    ));
+}
+
+fn spawn_healing_potion(ecs: &mut World, pos: Point) {
+    ecs.push((
+        Item,
+        pos,
+        Render::new(ColorPair::new(WHITE, BLACK), to_cp437('!')),
+        Name("Healing Potion".to_string()),
+        ProvidesHealing { amount: 6 },
+    ));
+}
+
+fn spawn_magic_mapper(ecs: &mut World, pos: Point) {
+    ecs.push((
+        Item,
+        pos,
+        Render::new(ColorPair::new(WHITE, BLACK), to_cp437('{')),
+        Name("Dungeon Map".to_string()),
+        ProvidesDungeonMap,
     ));
 }
 

@@ -61,6 +61,14 @@ pub struct Name(pub String);
 pub struct Player;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ProvidesHealing {
+    pub amount: i32,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ProvidesDungeonMap;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Render {
     pub color: ColorPair,
     pub glyph: FontCharType,
