@@ -15,27 +15,24 @@ pub fn player_input(
     #[resource] turn_state: &mut TurnState,
 ) {
     let helper = PlayerActionHelper::new(*key, ecs);
-    let action = helper.determine_action(ecs);
-    let take_turn = action != PlayerAction::None;
 
-    match action {
-        PlayerAction::ActivateItem(a) => {
-            commands.extend(a);
-        }
-        PlayerAction::Attack(a) => {
-            commands.extend(a);
-        }
-        PlayerAction::GetMagicItem => helper.pick_up_item(ecs, commands),
-        PlayerAction::Heal => helper.heal(ecs), // no longer in use
-        PlayerAction::Move(m) => {
-            commands.extend(m);
-        }
-        PlayerAction::None => (),
-        PlayerAction::ShowPlayerPosition => println!(">>>Player at {:?}", helper.pos),
-        PlayerAction::Wait => (),
-    };
+    if let Some(action) = helper.determine_action(ecs) {
+        match action {
+            PlayerAction::ActivateItem(a) => {
+                commands.extend(a);
+            }
+            PlayerAction::Attack(a) => {
+                commands.extend(a);
+            }
+            PlayerAction::GetMagicItem => helper.pick_up_item(ecs, commands),
+            PlayerAction::Heal => helper.heal(ecs), // no longer in use
+            PlayerAction::Move(m) => {
+                commands.extend(m);
+            }
+            PlayerAction::ShowPlayerPosition => println!(">>>Player at {:?}", helper.pos),
+            PlayerAction::Wait => (),
+        };
 
-    if take_turn {
         *turn_state = TurnState::PlayerTurn;
-    }
+    };
 }

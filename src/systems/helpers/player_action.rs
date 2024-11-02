@@ -24,34 +24,37 @@ impl PlayerActionHelper {
         determiner
     }
 
-    pub fn determine_action(&self, ecs: &SubWorld) -> PlayerAction {
+    pub fn determine_action(&self, ecs: &SubWorld) -> Option<PlayerAction> {
         if self.key.is_none() {
-            return PlayerAction::None;
+            return None;
         }
 
         if !self.attacks.is_empty() {
-            return PlayerAction::Attack(self.attacks.clone());
+            return Some(PlayerAction::Attack(self.attacks.clone()));
         }
 
         if let Some(destination) = self.destination {
-            return PlayerAction::Move(vec![((), WantsToMove::new(self.player, destination))]);
+            return Some(PlayerAction::Move(vec![(
+                (),
+                WantsToMove::new(self.player, destination),
+            )]));
         }
 
         let key = self.key.unwrap();
         match key {
-            VirtualKeyCode::G => PlayerAction::GetMagicItem,
-            VirtualKeyCode::P => PlayerAction::ShowPlayerPosition,
-            VirtualKeyCode::Key1 => PlayerAction::ActivateItem(self.select_item(0, ecs)),
-            VirtualKeyCode::Key2 => PlayerAction::ActivateItem(self.select_item(1, ecs)),
-            VirtualKeyCode::Key3 => PlayerAction::ActivateItem(self.select_item(2, ecs)),
-            VirtualKeyCode::Key4 => PlayerAction::ActivateItem(self.select_item(3, ecs)),
-            VirtualKeyCode::Key5 => PlayerAction::ActivateItem(self.select_item(4, ecs)),
-            VirtualKeyCode::Key6 => PlayerAction::ActivateItem(self.select_item(5, ecs)),
-            VirtualKeyCode::Key7 => PlayerAction::ActivateItem(self.select_item(6, ecs)),
-            VirtualKeyCode::Key8 => PlayerAction::ActivateItem(self.select_item(7, ecs)),
-            VirtualKeyCode::Key9 => PlayerAction::ActivateItem(self.select_item(8, ecs)),
+            VirtualKeyCode::G => Some(PlayerAction::GetMagicItem),
+            VirtualKeyCode::P => Some(PlayerAction::ShowPlayerPosition),
+            VirtualKeyCode::Key1 => self.select_item(0, ecs),
+            VirtualKeyCode::Key2 => self.select_item(1, ecs),
+            VirtualKeyCode::Key3 => self.select_item(2, ecs),
+            VirtualKeyCode::Key4 => self.select_item(3, ecs),
+            VirtualKeyCode::Key5 => self.select_item(4, ecs),
+            VirtualKeyCode::Key6 => self.select_item(5, ecs),
+            VirtualKeyCode::Key7 => self.select_item(6, ecs),
+            VirtualKeyCode::Key8 => self.select_item(7, ecs),
+            VirtualKeyCode::Key9 => self.select_item(8, ecs),
             // _ => Action::Heal,
-            _ => PlayerAction::Wait,
+            _ => Some(PlayerAction::Wait),
         }
     }
 
@@ -91,19 +94,15 @@ impl PlayerActionHelper {
             .unwrap_or_default()
     }
 
-    fn select_item(&self, n: usize, ecs: &SubWorld) -> ActivateItemCommandVec {
-        let item_entity = <(Entity, &Item, &Carried)>::query()
+    fn select_item(&self, n: usize, ecs: &SubWorld) -> Option<PlayerAction> {
+        <(Entity, &Item, &Carried)>::query()
             .iter(ecs)
             .filter(|(_, _, carried)| carried.0 == self.player)
             .enumerate()
-            .filter(|(item_count, (_, _, _))| *item_count == n)
-            .find_map(|(_, (&item_entity, _, _))| Some(item_entity));
-
-        if let Some(item_entity) = item_entity {
-            return vec![((), ActivateItem::new(item_entity, self.player))];
-        } else {
-            Vec::new()
-        }
+            .filter(|(item_count, _)| *item_count == n)
+            .find_map(|(_, (&item_entity, ..))| Some(ActivateItem::new(item_entity, self.player)))
+            .map(|a| vec![((), a)])
+            .map(|v| PlayerAction::ActivateItem(v))
     }
 }
 
@@ -133,7 +132,6 @@ pub enum PlayerAction {
     GetMagicItem,
     Heal,
     Move(MoveCommandVec),
-    None,
     ShowPlayerPosition,
     Wait,
 }
