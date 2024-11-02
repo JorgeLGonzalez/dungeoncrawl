@@ -30,11 +30,14 @@ pub fn use_items(ecs: &mut SubWorld, commands: &mut CommandBuffer, #[resource] m
         })
         .collect();
 
-    let mut healing_to_apply = Vec::<(Entity, i32)>::new();
     for activation in activations.iter() {
         match activation.kind {
             ItemKind::Healing(h) => {
-                healing_to_apply.push((activation.user, h.amount));
+                if let Ok(mut target) = ecs.entry_mut(activation.user) {
+                    if let Ok(health) = target.get_component_mut::<Health>() {
+                        health.current = i32::min(health.max, health.current + h.amount)
+                    }
+                }
             }
             ItemKind::Map => {
                 map.revealed_tiles.iter_mut().for_each(|t| *t = true);
@@ -44,14 +47,6 @@ pub fn use_items(ecs: &mut SubWorld, commands: &mut CommandBuffer, #[resource] m
 
         commands.remove(activation.item);
         commands.remove(activation.message);
-    }
-
-    for heal in healing_to_apply.iter() {
-        if let Ok(mut target) = ecs.entry_mut(heal.0) {
-            if let Ok(health) = target.get_component_mut::<Health>() {
-                health.current = i32::min(health.max, health.current + heal.1)
-            }
-        }
     }
 }
 
