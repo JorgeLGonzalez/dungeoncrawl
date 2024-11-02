@@ -16,10 +16,13 @@ pub fn player_input(
     let (player, pos) = get_player_info(ecs);
     let destination = key.and_then(delta).map(|delta| delta + pos);
     let attacks = gather_attacks(ecs, player, destination);
-    let action = determine_action(player, attacks, destination, key);
+    let action = determine_action(player, attacks, destination, key, ecs);
     let take_turn = action != Action::None;
 
     match action {
+        Action::ActivateItem(a) => {
+            commands.extend(a);
+        }
         Action::Attack(a) => {
             commands.extend(a);
         }
@@ -53,17 +56,10 @@ fn determine_action(
     attacks: AttackCommandVec,
     destination: Option<Point>,
     key: &Option<VirtualKeyCode>,
+    ecs: &SubWorld,
 ) -> Action {
     if key.is_none() {
         return Action::None;
-    }
-
-    if matches!(key, Some(VirtualKeyCode::G)) {
-        return Action::GetMagicItem;
-    }
-
-    if matches!(key, Some(VirtualKeyCode::P)) {
-        return Action::ShowPlayerPosition;
     }
 
     if !attacks.is_empty() {
@@ -74,7 +70,21 @@ fn determine_action(
         return Action::Move(vec![((), WantsToMove::new(player, destination))]);
     }
 
-    return Action::Heal;
+    let key = key.unwrap();
+    match key {
+        VirtualKeyCode::G => Action::GetMagicItem,
+        VirtualKeyCode::P => Action::ShowPlayerPosition,
+        VirtualKeyCode::Key1 => Action::ActivateItem(use_item(0, ecs)),
+        VirtualKeyCode::Key2 => Action::ActivateItem(use_item(1, ecs)),
+        VirtualKeyCode::Key3 => Action::ActivateItem(use_item(2, ecs)),
+        VirtualKeyCode::Key4 => Action::ActivateItem(use_item(3, ecs)),
+        VirtualKeyCode::Key5 => Action::ActivateItem(use_item(4, ecs)),
+        VirtualKeyCode::Key6 => Action::ActivateItem(use_item(5, ecs)),
+        VirtualKeyCode::Key7 => Action::ActivateItem(use_item(6, ecs)),
+        VirtualKeyCode::Key8 => Action::ActivateItem(use_item(7, ecs)),
+        VirtualKeyCode::Key9 => Action::ActivateItem(use_item(8, ecs)),
+        _ => Action::Heal,
+    }
 }
 
 fn gather_attacks(ecs: &SubWorld, player: Entity, destination: Option<Point>) -> AttackCommandVec {
@@ -118,8 +128,35 @@ fn pick_up(ecs: &mut SubWorld, player: Entity, pos: Point, commands: &mut Comman
         });
 }
 
+fn use_item(n: usize, ecs: &SubWorld) -> ActivateItemCommandVec {
+    let player_entity = <(Entity, &Player)>::query()
+        .iter(ecs)
+        .find_map(|(&entity, _player)| Some(entity))
+        .unwrap();
+
+    let item_entity = <(Entity, &Item, &Carried)>::query()
+        .iter(ecs)
+        .filter(|(_, _, carried)| carried.0 == player_entity)
+        .enumerate()
+        .filter(|(item_count, (_, _, _))| *item_count == n)
+        .find_map(|(_, (&item_entity, _, _))| Some(item_entity));
+
+    if let Some(item_entity) = item_entity {
+        return vec![(
+            (),
+            ActivateItem {
+                item: item_entity,
+                used_by: player_entity,
+            },
+        )];
+    } else {
+        Vec::new()
+    }
+}
+
 #[derive(PartialEq)]
 enum Action {
+    ActivateItem(ActivateItemCommandVec),
     Attack(AttackCommandVec),
     GetMagicItem,
     Heal,
@@ -128,5 +165,6 @@ enum Action {
     ShowPlayerPosition,
 }
 
+type ActivateItemCommandVec = Vec<((), ActivateItem)>;
 type AttackCommandVec = Vec<((), WantsToAttack)>;
 type MoveCommandVec = Vec<((), WantsToMove)>;

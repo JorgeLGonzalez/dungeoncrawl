@@ -1,6 +1,12 @@
 use std::collections::HashSet;
 
-pub use crate::prelude::*;
+use crate::prelude::*;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ActivateItem {
+    pub item: Entity,
+    pub used_by: Entity,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct AmuletOfYala; // YALA = Yet Another Lost Amulet :)
