@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use world::EntryRef;
 
 #[system]
 #[read_component(ActivateItem)]
@@ -8,26 +9,7 @@ use crate::prelude::*;
 pub fn use_items(ecs: &mut SubWorld, commands: &mut CommandBuffer, #[resource] map: &mut Map) {
     let activations: Vec<ActivationMessage> = <(Entity, &ActivateItem)>::query()
         .iter(ecs)
-        .filter_map(|(&entity, activate)| {
-            if let Ok(item) = ecs.entry_ref(activate.item) {
-                let kind = if let Ok(&healing) = item.get_component::<ProvidesHealing>() {
-                    ItemKind::Healing(healing)
-                } else if let Ok(_mapper) = item.get_component::<ProvidesDungeonMap>() {
-                    ItemKind::Map
-                } else {
-                    ItemKind::None
-                };
-
-                Some(ActivationMessage {
-                    item: activate.item,
-                    kind,
-                    message: entity,
-                    user: activate.used_by,
-                })
-            } else {
-                None
-            }
-        })
+        .filter_map(|(&entity, activate)| ActivationMessage::new(activate, entity, ecs))
         .collect();
 
     for activation in activations.iter() {
@@ -42,7 +24,6 @@ pub fn use_items(ecs: &mut SubWorld, commands: &mut CommandBuffer, #[resource] m
             ItemKind::Map => {
                 map.revealed_tiles.iter_mut().for_each(|t| *t = true);
             }
-            ItemKind::None => (),
         }
 
         commands.remove(activation.item);
@@ -57,8 +38,37 @@ struct ActivationMessage {
     user: Entity,
 }
 
+impl ActivationMessage {
+    fn new(activate: &ActivateItem, message: Entity, ecs: &SubWorld) -> Option<Self> {
+        if let Ok(item) = ecs.entry_ref(activate.item) {
+            ActivationMessage::determine_kind(item).map(|kind| ActivationMessage {
+                item: activate.item,
+                kind,
+                message,
+                user: activate.used_by,
+            })
+        } else {
+            None
+        }
+    }
+
+    fn determine_kind(item: EntryRef) -> Option<ItemKind> {
+        let healing = item
+            .get_component::<ProvidesHealing>()
+            .map(|&h| ItemKind::Healing(h))
+            .ok();
+
+        if healing.is_some() {
+            healing
+        } else {
+            item.get_component::<ProvidesDungeonMap>()
+                .map(|_| ItemKind::Map)
+                .ok()
+        }
+    }
+}
+
 enum ItemKind {
     Healing(ProvidesHealing),
     Map,
-    None,
 }
