@@ -8,6 +8,12 @@ pub struct ActivateItem {
     pub used_by: Entity,
 }
 
+impl ActivateItem {
+    pub fn new(item: Entity, used_by: Entity) -> Self {
+        Self { item, used_by }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct AmuletOfYala; // YALA = Yet Another Lost Amulet :)
 

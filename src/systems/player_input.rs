@@ -74,15 +74,15 @@ fn determine_action(
     match key {
         VirtualKeyCode::G => Action::GetMagicItem,
         VirtualKeyCode::P => Action::ShowPlayerPosition,
-        VirtualKeyCode::Key1 => Action::ActivateItem(use_item(0, ecs)),
-        VirtualKeyCode::Key2 => Action::ActivateItem(use_item(1, ecs)),
-        VirtualKeyCode::Key3 => Action::ActivateItem(use_item(2, ecs)),
-        VirtualKeyCode::Key4 => Action::ActivateItem(use_item(3, ecs)),
-        VirtualKeyCode::Key5 => Action::ActivateItem(use_item(4, ecs)),
-        VirtualKeyCode::Key6 => Action::ActivateItem(use_item(5, ecs)),
-        VirtualKeyCode::Key7 => Action::ActivateItem(use_item(6, ecs)),
-        VirtualKeyCode::Key8 => Action::ActivateItem(use_item(7, ecs)),
-        VirtualKeyCode::Key9 => Action::ActivateItem(use_item(8, ecs)),
+        VirtualKeyCode::Key1 => Action::ActivateItem(select_item(0, player, ecs)),
+        VirtualKeyCode::Key2 => Action::ActivateItem(select_item(1, player, ecs)),
+        VirtualKeyCode::Key3 => Action::ActivateItem(select_item(2, player, ecs)),
+        VirtualKeyCode::Key4 => Action::ActivateItem(select_item(3, player, ecs)),
+        VirtualKeyCode::Key5 => Action::ActivateItem(select_item(4, player, ecs)),
+        VirtualKeyCode::Key6 => Action::ActivateItem(select_item(5, player, ecs)),
+        VirtualKeyCode::Key7 => Action::ActivateItem(select_item(6, player, ecs)),
+        VirtualKeyCode::Key8 => Action::ActivateItem(select_item(7, player, ecs)),
+        VirtualKeyCode::Key9 => Action::ActivateItem(select_item(8, player, ecs)),
         _ => Action::Heal,
     }
 }
@@ -128,12 +128,7 @@ fn pick_up(ecs: &mut SubWorld, player: Entity, pos: Point, commands: &mut Comman
         });
 }
 
-fn use_item(n: usize, ecs: &SubWorld) -> ActivateItemCommandVec {
-    let player_entity = <(Entity, &Player)>::query()
-        .iter(ecs)
-        .find_map(|(&entity, _player)| Some(entity))
-        .unwrap();
-
+fn select_item(n: usize, player_entity: Entity, ecs: &SubWorld) -> ActivateItemCommandVec {
     let item_entity = <(Entity, &Item, &Carried)>::query()
         .iter(ecs)
         .filter(|(_, _, carried)| carried.0 == player_entity)
@@ -142,13 +137,7 @@ fn use_item(n: usize, ecs: &SubWorld) -> ActivateItemCommandVec {
         .find_map(|(_, (&item_entity, _, _))| Some(item_entity));
 
     if let Some(item_entity) = item_entity {
-        return vec![(
-            (),
-            ActivateItem {
-                item: item_entity,
-                used_by: player_entity,
-            },
-        )];
+        return vec![((), ActivateItem::new(item_entity, player_entity))];
     } else {
         Vec::new()
     }
