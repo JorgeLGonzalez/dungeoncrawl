@@ -6,24 +6,45 @@ use crate::prelude::*;
 #[read_component(ProvidesDungeonMap)]
 #[write_component(Health)]
 pub fn use_items(ecs: &mut SubWorld, commands: &mut CommandBuffer, #[resource] map: &mut Map) {
-    let mut healing_to_apply = Vec::<(Entity, i32)>::new();
-    <(Entity, &ActivateItem)>::query()
+    let activations: Vec<ActivationMessage> = <(Entity, &ActivateItem)>::query()
         .iter(ecs)
-        .for_each(|(entity, activate)| {
-            let item = ecs.entry_ref(activate.item);
-            if let Ok(item) = item {
-                if let Ok(healing) = item.get_component::<ProvidesHealing>() {
-                    healing_to_apply.push((activate.used_by, healing.amount));
-                }
+        .filter_map(|(&entity, activate)| {
+            if let Ok(item) = ecs.entry_ref(activate.item) {
+                let kind = if let Ok(&healing) = item.get_component::<ProvidesHealing>() {
+                    ItemKind::Healing(healing)
+                } else if let Ok(_mapper) = item.get_component::<ProvidesDungeonMap>() {
+                    ItemKind::Map
+                } else {
+                    ItemKind::None
+                };
 
-                if let Ok(_mapper) = item.get_component::<ProvidesDungeonMap>() {
-                    map.revealed_tiles.iter_mut().for_each(|t| *t = true);
-                }
+                Some(ActivationMessage {
+                    item: activate.item,
+                    kind,
+                    message: entity,
+                    user: activate.used_by,
+                })
+            } else {
+                None
             }
+        })
+        .collect();
 
-            commands.remove(activate.item);
-            commands.remove(*entity);
-        });
+    let mut healing_to_apply = Vec::<(Entity, i32)>::new();
+    for activation in activations.iter() {
+        match activation.kind {
+            ItemKind::Healing(h) => {
+                healing_to_apply.push((activation.user, h.amount));
+            }
+            ItemKind::Map => {
+                map.revealed_tiles.iter_mut().for_each(|t| *t = true);
+            }
+            ItemKind::None => (),
+        }
+
+        commands.remove(activation.item);
+        commands.remove(activation.message);
+    }
 
     for heal in healing_to_apply.iter() {
         if let Ok(mut target) = ecs.entry_mut(heal.0) {
@@ -32,4 +53,17 @@ pub fn use_items(ecs: &mut SubWorld, commands: &mut CommandBuffer, #[resource] m
             }
         }
     }
+}
+
+struct ActivationMessage {
+    item: Entity,
+    kind: ItemKind,
+    message: Entity,
+    user: Entity,
+}
+
+enum ItemKind {
+    Healing(ProvidesHealing),
+    Map,
+    None,
 }
