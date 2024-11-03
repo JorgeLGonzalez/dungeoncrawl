@@ -1,3 +1,4 @@
+use super::get_player_pos;
 use crate::prelude::*;
 
 pub enum ChaseAction {
@@ -129,11 +130,6 @@ fn find_player(occupants: &[Occupant]) -> Option<Entity> {
             _ => None,
         })
         .last()
-}
-
-fn get_player_pos(ecs: &SubWorld) -> Point {
-    let mut player = <(&Point, &Player)>::query();
-    *player.iter(ecs).nth(0).unwrap().0
 }
 
 fn occupied(destination: Point, (_, pos, _): &(&Entity, &Point, &Health)) -> bool {

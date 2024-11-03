@@ -1,3 +1,4 @@
+use super::helpers::get_player_pos;
 use crate::prelude::*;
 
 #[system]
@@ -10,47 +11,31 @@ pub fn end_turn(ecs: &SubWorld, #[resource] turn_state: &mut TurnState, #[resour
         return;
     }
 
+    let player_pos = get_player_pos(ecs);
+
     let new_state = if player_died(ecs) {
         TurnState::GameOver
-    } else if amulet_hit(ecs) {
+    } else if player_pos == amulet_pos(ecs) {
         TurnState::Victory
+    } else if player_tile(player_pos, map) == TileType::Exit {
+        TurnState::NextLevel
     } else {
-        let player_pos = <&Point>::query()
-            .filter(component::<Player>())
-            .iter(ecs)
-            .nth(0)
-            .unwrap();
-
-        let idx = map.point2d_to_index(*player_pos);
-        if map.tiles[idx] == TileType::Exit {
-            TurnState::NextLevel
-        } else {
-            match *turn_state {
-                TurnState::MonsterTurn => TurnState::AwaitingInput,
-                TurnState::PlayerTurn => TurnState::MonsterTurn,
-                _ => turn_state.clone(),
-            }
+        match *turn_state {
+            TurnState::MonsterTurn => TurnState::AwaitingInput,
+            TurnState::PlayerTurn => TurnState::MonsterTurn,
+            _ => turn_state.clone(),
         }
     };
 
     *turn_state = new_state;
 }
 
-fn amulet_hit(ecs: &SubWorld) -> bool {
-    let amulet_default = Point::new(-1, -1);
-    let amulet_pos = <&Point>::query()
+fn amulet_pos(ecs: &SubWorld) -> Point {
+    <&Point>::query()
         .filter(component::<AmuletOfYala>())
         .iter(ecs)
         .nth(0)
-        .unwrap_or(&amulet_default);
-
-    let player_pos = <&Point>::query()
-        .filter(component::<Player>())
-        .iter(ecs)
-        .nth(0)
-        .unwrap();
-
-    player_pos == amulet_pos
+        .map_or_else(|| Point::new(-1, -1), |&p| p)
 }
 
 fn player_died(ecs: &SubWorld) -> bool {
@@ -59,4 +44,8 @@ fn player_died(ecs: &SubWorld) -> bool {
         .iter(ecs)
         .find(|hp| hp.current < 1)
         .is_some()
+}
+
+fn player_tile(player_pos: Point, map: &Map) -> TileType {
+    map.tiles[map.point2d_to_index(player_pos)]
 }
