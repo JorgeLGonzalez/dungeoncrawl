@@ -1,10 +1,12 @@
 mod end_screens;
+mod level_advancer;
 mod spawner;
 
 use crate::{
     prelude::*,
     systems::{build_input_scheduler, build_monster_scheduler, build_player_scheduler},
 };
+use level_advancer::advance_level;
 use spawner::Spawner;
 use std::{collections::HashSet, process::Command};
 
@@ -34,14 +36,11 @@ impl State {
     }
 
     fn advance_level(&mut self) {
-        self.remove_level_entities();
-        self.reset_fov();
-
         let mut rng = RandomNumberGenerator::new();
         let mut map_builder = MapBuilder::new(&mut rng);
-        let map_level = self.set_player_on_next_level(&map_builder);
 
-        Spawner::spawn(&mut self.ecs, &mut rng, &mut map_builder, map_level);
+        let level = advance_level(&mut self.ecs, &map_builder);
+        Spawner::spawn(&mut self.ecs, &mut rng, &mut map_builder, level);
         self.resources = create_resources(map_builder);
     }
 
@@ -51,41 +50,6 @@ impl State {
         if let Some(VirtualKeyCode::Key1) = ctx.key {
             self.restart();
         }
-    }
-
-    fn remove_level_entities(&mut self) {
-        let player_entity = *<Entity>::query()
-            .filter(component::<Player>())
-            .iter(&mut self.ecs)
-            .nth(0)
-            .unwrap();
-
-        let mut entities_to_keep = HashSet::new();
-        entities_to_keep.insert(player_entity);
-
-        <(Entity, &Carried)>::query()
-            .iter(&self.ecs)
-            .filter(|(_, carry)| carry.0 == player_entity)
-            .map(|(e, _carry)| *e)
-            .for_each(|e| {
-                entities_to_keep.insert(e);
-            });
-
-        let mut cb = CommandBuffer::new(&mut self.ecs);
-        for e in Entity::query().iter(&self.ecs) {
-            if !entities_to_keep.contains(e) {
-                cb.remove(*e);
-            }
-        }
-        cb.flush(&mut self.ecs);
-    }
-
-    fn reset_fov(&mut self) {
-        <&mut FieldOfView>::query()
-            .iter_mut(&mut self.ecs)
-            .for_each(|fov| {
-                fov.is_dirty = true;
-            });
     }
 
     fn restart(&mut self) {
@@ -98,20 +62,6 @@ impl State {
         self.ecs = World::default();
         Spawner::spawn(&mut self.ecs, &mut rng, &mut mb, 0);
         self.resources = create_resources(mb);
-    }
-
-    fn set_player_on_next_level(&mut self, map_builder: &MapBuilder) -> u32 {
-        let mut map_level = 0;
-        <(&mut Player, &mut Point)>::query()
-            .iter_mut(&mut self.ecs)
-            .for_each(|(player, pos)| {
-                player.map_level += 1;
-                map_level = player.map_level;
-                pos.x = map_builder.player_start.x;
-                pos.y = map_builder.player_start.y;
-            });
-
-        map_level
     }
 
     fn victory(&mut self, ctx: &mut BTerm) {
