@@ -72,7 +72,7 @@ pub struct MovingRandomly;
 #[derive(Clone, PartialEq)]
 pub struct Name(pub String);
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Player {
     pub map_level: u32,
 }
