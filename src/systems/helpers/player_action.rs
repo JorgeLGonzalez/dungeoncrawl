@@ -130,6 +130,7 @@ pub enum PlayerAction {
     ActivateItem(ActivateItemCommandVec),
     Attack(AttackCommandVec),
     GetMagicItem,
+    #[allow(dead_code)]
     Heal,
     Move(MoveCommandVec),
     ShowPlayerPosition,

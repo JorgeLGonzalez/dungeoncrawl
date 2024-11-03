@@ -83,6 +83,8 @@ impl State {
         }
     }
 
+    fn advance_level(&mut self) {}
+
     fn game_over(&mut self, ctx: &mut BTerm) {
         end_screens::render_game_over(ctx);
 
@@ -135,6 +137,7 @@ impl GameState for State {
             TurnState::MonsterTurn => self
                 .monster_systems
                 .execute(&mut self.ecs, &mut self.resources),
+            TurnState::NextLevel => self.advance_level(),
             TurnState::PlayerTurn => self
                 .player_systems
                 .execute(&mut self.ecs, &mut self.resources),

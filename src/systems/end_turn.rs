@@ -5,7 +5,7 @@ use crate::prelude::*;
 #[read_component(Health)]
 #[read_component(Player)]
 #[read_component(Point)]
-pub fn end_turn(ecs: &SubWorld, #[resource] turn_state: &mut TurnState) {
+pub fn end_turn(ecs: &SubWorld, #[resource] turn_state: &mut TurnState, #[resource] map: &Map) {
     if *turn_state == TurnState::AwaitingInput {
         return;
     }
@@ -15,10 +15,21 @@ pub fn end_turn(ecs: &SubWorld, #[resource] turn_state: &mut TurnState) {
     } else if amulet_hit(ecs) {
         TurnState::Victory
     } else {
-        match *turn_state {
-            TurnState::MonsterTurn => TurnState::AwaitingInput,
-            TurnState::PlayerTurn => TurnState::MonsterTurn,
-            _ => turn_state.clone(),
+        let player_pos = <&Point>::query()
+            .filter(component::<Player>())
+            .iter(ecs)
+            .nth(0)
+            .unwrap();
+
+        let idx = map.point2d_to_index(*player_pos);
+        if map.tiles[idx] == TileType::Exit {
+            TurnState::NextLevel
+        } else {
+            match *turn_state {
+                TurnState::MonsterTurn => TurnState::AwaitingInput,
+                TurnState::PlayerTurn => TurnState::MonsterTurn,
+                _ => turn_state.clone(),
+            }
         }
     };
 

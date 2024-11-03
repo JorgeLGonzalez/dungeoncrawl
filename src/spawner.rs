@@ -80,7 +80,7 @@ impl<'a> Spawner<'a> {
         self.ecs.push((
             FieldOfView::new(8),
             Health::new(10, 10),
-            Player,
+            (Player { map_level: 0 }),
             pos,
             Render::new(ColorPair::new(WHITE, BLACK), to_cp437('@')),
         ));
