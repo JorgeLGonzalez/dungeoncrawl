@@ -4,6 +4,10 @@ From [Hands-on Rust: Effective Learning through 2D Game Development and Play](ht
 
 See https://opengameart.org/ for more game art.
 
+## Issue: items hide monsters
+
+Annoying that monsters may disappear behind items. Think this is because monsters and items are all rendered in entity_render which simply loops through all entities (including the player). We could ensure items are rendered first, that should fix it.
+
 ## Issue: periphery walls
 
 In the cell automata and drunkard walk builders, the floor often hits the screen boundary without walls. Is that expected? Regardless, it looks weird.

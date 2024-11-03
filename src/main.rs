@@ -69,9 +69,9 @@ struct State {
 impl State {
     fn new() -> Self {
         let mut rng = RandomNumberGenerator::new();
-        let mb = MapBuilder::new(&mut rng);
+        let mut mb = MapBuilder::new(&mut rng);
         let mut ecs = World::default();
-        Spawner::spawn(&mut ecs, &mut rng, &mb);
+        Spawner::spawn(&mut ecs, &mut rng, &mut mb);
         let resources = create_resources(mb);
 
         Self {
@@ -97,9 +97,9 @@ impl State {
             .expect("Failed to clear terminal");
 
         let mut rng = RandomNumberGenerator::new();
-        let mb = MapBuilder::new(&mut rng);
+        let mut mb = MapBuilder::new(&mut rng);
         self.ecs = World::default();
-        Spawner::spawn(&mut self.ecs, &mut rng, &mb);
+        Spawner::spawn(&mut self.ecs, &mut rng, &mut mb);
         self.resources = create_resources(mb);
     }
 

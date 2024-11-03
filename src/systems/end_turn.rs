@@ -26,11 +26,13 @@ pub fn end_turn(ecs: &SubWorld, #[resource] turn_state: &mut TurnState) {
 }
 
 fn amulet_hit(ecs: &SubWorld) -> bool {
+    let amulet_default = Point::new(-1, -1);
     let amulet_pos = <&Point>::query()
         .filter(component::<AmuletOfYala>())
         .iter(ecs)
         .nth(0)
-        .unwrap();
+        .unwrap_or(&amulet_default);
+
     let player_pos = <&Point>::query()
         .filter(component::<Player>())
         .iter(ecs)
