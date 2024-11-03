@@ -6,19 +6,29 @@ pub struct Spawner<'a> {
 }
 
 impl<'a> Spawner<'a> {
-    pub fn spawn(ecs: &mut World, rng: &mut RandomNumberGenerator, map_builder: &mut MapBuilder) {
+    pub fn spawn(
+        ecs: &mut World,
+        rng: &mut RandomNumberGenerator,
+        map_builder: &mut MapBuilder,
+        level: u32,
+    ) {
         let mut spawner = Spawner { ecs, rng };
 
-        // spawner.spawn_amulet_of_yala(map_builder.amulet_start);
-        let exit_idx = map_builder.map.point2d_to_index(map_builder.amulet_start);
-        map_builder.map.tiles[exit_idx] = TileType::Exit;
+        if level == 2 {
+            spawner.spawn_amulet_of_yala(map_builder.amulet_start);
+        } else {
+            let exit_idx = map_builder.map.point2d_to_index(map_builder.amulet_start);
+            map_builder.map.tiles[exit_idx] = TileType::Exit;
+        }
 
         map_builder
             .monster_spawns
             .iter()
             .for_each(|pos| spawner.spawn_entity(*pos));
 
-        spawner.spawn_player(map_builder.player_start);
+        if level == 0 {
+            spawner.spawn_player(map_builder.player_start);
+        }
     }
 
     fn spawn_entity(&mut self, pos: Point) {

@@ -38,7 +38,7 @@ mod prelude {
 }
 
 use prelude::*;
-use std::process::Command;
+use std::{collections::HashSet, process::Command};
 use systems::{build_input_scheduler, build_monster_scheduler, build_player_scheduler};
 
 fn main() -> BError {
@@ -71,7 +71,7 @@ impl State {
         let mut rng = RandomNumberGenerator::new();
         let mut mb = MapBuilder::new(&mut rng);
         let mut ecs = World::default();
-        Spawner::spawn(&mut ecs, &mut rng, &mut mb);
+        Spawner::spawn(&mut ecs, &mut rng, &mut mb, 0);
         let resources = create_resources(mb);
 
         Self {
@@ -83,7 +83,57 @@ impl State {
         }
     }
 
-    fn advance_level(&mut self) {}
+    fn advance_level(&mut self) {
+        let player_entity = *<Entity>::query()
+            .filter(component::<Player>())
+            .iter(&mut self.ecs)
+            .nth(0)
+            .unwrap();
+
+        let mut entities_to_keep = HashSet::new();
+        entities_to_keep.insert(player_entity);
+
+        <(Entity, &Carried)>::query()
+            .iter(&self.ecs)
+            .filter(|(_, carry)| carry.0 == player_entity)
+            .map(|(e, _carry)| *e)
+            .for_each(|e| {
+                entities_to_keep.insert(e);
+            });
+
+        let mut cb = CommandBuffer::new(&mut self.ecs);
+        for e in Entity::query().iter(&self.ecs) {
+            if !entities_to_keep.contains(e) {
+                cb.remove(*e);
+            }
+        }
+        cb.flush(&mut self.ecs);
+
+        <&mut FieldOfView>::query()
+            .iter_mut(&mut self.ecs)
+            .for_each(|fov| {
+                fov.is_dirty = true;
+            });
+
+        let mut rng = RandomNumberGenerator::new();
+        let mut map_builder = MapBuilder::new(&mut rng);
+        let mut map_level = 0;
+        <(&mut Player, &mut Point)>::query()
+            .iter_mut(&mut self.ecs)
+            .for_each(|(player, pos)| {
+                player.map_level += 1;
+                map_level = player.map_level;
+                pos.x = map_builder.player_start.x;
+                pos.y = map_builder.player_start.y;
+            });
+
+        Spawner::spawn(&mut self.ecs, &mut rng, &mut map_builder, map_level);
+
+        self.resources.insert(map_builder.map);
+        self.resources.insert(Camera::new(map_builder.player_start));
+        self.resources.insert(TurnState::AwaitingInput);
+        self.resources.insert(map_builder.theme);
+    }
 
     fn game_over(&mut self, ctx: &mut BTerm) {
         end_screens::render_game_over(ctx);
@@ -101,7 +151,7 @@ impl State {
         let mut rng = RandomNumberGenerator::new();
         let mut mb = MapBuilder::new(&mut rng);
         self.ecs = World::default();
-        Spawner::spawn(&mut self.ecs, &mut rng, &mut mb);
+        Spawner::spawn(&mut self.ecs, &mut rng, &mut mb, 0);
         self.resources = create_resources(mb);
     }
 
