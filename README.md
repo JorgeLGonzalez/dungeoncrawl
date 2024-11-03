@@ -4,10 +4,6 @@ From [Hands-on Rust: Effective Learning through 2D Game Development and Play](ht
 
 See https://opengameart.org/ for more game art.
 
-## Issue: items hide monsters
-
-Annoying that monsters may disappear behind items. Think this is because monsters and items are all rendered in entity_render which simply loops through all entities (including the player). We could ensure items are rendered first, that should fix it.
-
 ## Issue: periphery walls
 
 In the cell automata and drunkard walk builders, the floor often hits the screen boundary without walls. Is that expected? Regardless, it looks weird.
@@ -20,3 +16,9 @@ This seems to be a bug in the book's [chasing](./src/systems/chasing.rs) (though
 The fix is simple (see `will_be_occupied`). The 'chasing' system keeps track of the planned moves for each monster and ignores any new moves to a position that will be occupied based on the accumulated planned moves.
 
 Note that a more elegant solution would probably be to check for future position occupation rather than current occupation instead. As things stand now, a monster is unable to move to a position currently occupied by another monster even though the second monster may end up anyway moving out of it in the turn.
+
+## Issue (Resolved): items hide monsters
+
+Annoying that monsters may disappear behind items. Think this is because monsters and items are all rendered in entity_render which simply loops through all entities (including the player). We could ensure items are rendered first, that should fix it.
+
+Resolved by adding a render order field to the Render component and then using it to order in which the entities are drawn in entity_render.

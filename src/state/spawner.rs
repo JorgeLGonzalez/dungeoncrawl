@@ -45,7 +45,11 @@ impl<'a> Spawner<'a> {
             Item,
             AmuletOfYala,
             pos,
-            Render::new(ColorPair::new(WHITE, BLACK), to_cp437('/')),
+            Render::new(
+                ColorPair::new(WHITE, BLACK),
+                to_cp437('/'),
+                RenderOrder::Item,
+            ),
         ));
     }
 
@@ -53,7 +57,11 @@ impl<'a> Spawner<'a> {
         self.ecs.push((
             Item,
             pos,
-            Render::new(ColorPair::new(WHITE, BLACK), to_cp437('!')),
+            Render::new(
+                ColorPair::new(WHITE, BLACK),
+                to_cp437('!'),
+                RenderOrder::Item,
+            ),
             Name("Healing Potion".to_string()),
             ProvidesHealing::new(6),
         ));
@@ -63,7 +71,11 @@ impl<'a> Spawner<'a> {
         self.ecs.push((
             Item,
             pos,
-            Render::new(ColorPair::new(WHITE, BLACK), to_cp437('{')),
+            Render::new(
+                ColorPair::new(WHITE, BLACK),
+                to_cp437('{'),
+                RenderOrder::Item,
+            ),
             Name("Dungeon Map".to_string()),
             ProvidesDungeonMap,
         ));
@@ -82,7 +94,7 @@ impl<'a> Spawner<'a> {
             Health::new(hp, hp),
             Name(name),
             pos,
-            Render::new(ColorPair::new(WHITE, BLACK), glyph),
+            Render::new(ColorPair::new(WHITE, BLACK), glyph, RenderOrder::Enemy),
         ));
     }
 
@@ -92,7 +104,11 @@ impl<'a> Spawner<'a> {
             Health::new(10, 10),
             Player::default(),
             pos,
-            Render::new(ColorPair::new(WHITE, BLACK), to_cp437('@')),
+            Render::new(
+                ColorPair::new(WHITE, BLACK),
+                to_cp437('@'),
+                RenderOrder::Player,
+            ),
         ));
     }
 }

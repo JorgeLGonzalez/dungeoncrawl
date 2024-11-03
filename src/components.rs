@@ -95,12 +95,24 @@ pub struct ProvidesDungeonMap;
 pub struct Render {
     pub color: ColorPair,
     pub glyph: FontCharType,
+    pub order: RenderOrder,
 }
 
 impl Render {
-    pub fn new(color: ColorPair, glyph: FontCharType) -> Self {
-        Self { color, glyph }
+    pub fn new(color: ColorPair, glyph: FontCharType, order: RenderOrder) -> Self {
+        Self {
+            color,
+            glyph,
+            order,
+        }
     }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum RenderOrder {
+    Enemy = 1,
+    Item = 0,
+    Player = 2,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
