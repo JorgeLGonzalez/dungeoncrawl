@@ -128,11 +128,7 @@ impl State {
             });
 
         Spawner::spawn(&mut self.ecs, &mut rng, &mut map_builder, map_level);
-
-        self.resources.insert(map_builder.map);
-        self.resources.insert(Camera::new(map_builder.player_start));
-        self.resources.insert(TurnState::AwaitingInput);
-        self.resources.insert(map_builder.theme);
+        self.resources = create_resources(map_builder);
     }
 
     fn game_over(&mut self, ctx: &mut BTerm) {
