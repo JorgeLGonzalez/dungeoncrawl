@@ -23,9 +23,7 @@ impl Map {
     }
 
     pub fn can_enter_tile(&self, point: Point) -> bool {
-        self.in_bounds(point)
-            && (self.tiles[map_idx(point.x, point.y)] == TileType::Floor
-                || self.tiles[map_idx(point.x, point.y)] == TileType::Exit)
+        self.in_bounds(point) && is_entry_tile(self.tiles[map_idx(point.x, point.y)])
     }
 
     pub fn in_bounds(&self, point: Point) -> bool {
@@ -53,6 +51,12 @@ impl Map {
             None
         }
     }
+}
+
+fn is_entry_tile(tile_type: TileType) -> bool {
+    const ENTRY_TILES: [TileType; 2] = [TileType::Floor, TileType::Exit];
+
+    ENTRY_TILES.iter().find(|&&t| t == tile_type).is_some()
 }
 
 /// Convert x,y to vector index. Called striding. See pp 162-163
