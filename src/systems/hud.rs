@@ -7,11 +7,15 @@ use crate::prelude::*;
 #[read_component(Name)]
 #[read_component(Player)]
 pub fn hud(ecs: &SubWorld) {
-    let mut health_query = <&Health>::query().filter(component::<Player>());
-    let player_health = health_query.iter(ecs).nth(0).unwrap();
+    let HudInfo {
+        inventory,
+        map_level,
+        player_health,
+    } = HudInfo::new(ecs);
 
     let mut draw_batch = DrawBatch::new();
     draw_batch.target(ConsoleLayer::Hud.into());
+
     draw_batch.print_centered(1, "Explore the Dungeon. Cursor keys to move.");
     draw_batch.bar_horizontal(
         Point::zero(),
@@ -25,44 +29,17 @@ pub fn hud(ecs: &SubWorld) {
         format!("Health: {}/{}", player_health.current, player_health.max),
         ColorPair::new(WHITE, RED),
     );
-    draw_batch.submit(10000).expect("Batch error");
 
-    let (player, map_level) = <(Entity, &Player)>::query()
-        .iter(ecs)
-        .find_map(|(entity, player)| Some((*entity, player.map_level)))
-        .unwrap();
-
-    display_map_level(map_level);
-    display_inventory(player, ecs);
-}
-
-fn display_inventory(player: Entity, ecs: &SubWorld) {
-    let mut draw_batch = DrawBatch::new();
-    draw_batch.target(ConsoleLayer::Hud.into());
-
-    let mut item_query = <(&Item, &Name, &Carried)>::query();
-    let mut y = 3;
-    item_query
-        .iter(ecs)
-        .filter(|(_, _, carried)| carried.0 == player)
-        .for_each(|(_, name, _)| {
-            draw_batch.print(Point::new(3, y), format!("{}:{}", y - 2, &name.0));
-            y += 1;
-        });
-    if y > 3 {
+    if !inventory.is_empty() {
         draw_batch.print_color(
             Point::new(3, 2),
             "Items carried",
             ColorPair::new(YELLOW, BLACK),
         );
     }
-
-    draw_batch.submit(10000).expect("Batch error");
-}
-
-fn display_map_level(map_level: u32) {
-    let mut draw_batch = DrawBatch::new();
-    draw_batch.target(ConsoleLayer::Hud.into());
+    inventory.iter().enumerate().for_each(|(idx, item)| {
+        draw_batch.print(Point::new(3, 3 + idx), format!("{}:{}", idx + 1, item));
+    });
 
     draw_batch.print_color_right(
         Point::new(SCREEN_WIDTH * 2, 1),
@@ -71,4 +48,36 @@ fn display_map_level(map_level: u32) {
     );
 
     draw_batch.submit(10000).expect("Batch error");
+}
+
+struct HudInfo {
+    inventory: Vec<String>,
+    map_level: u32,
+    player_health: Health,
+}
+
+impl HudInfo {
+    fn new(ecs: &SubWorld) -> Self {
+        let mut health_query = <&Health>::query().filter(component::<Player>());
+        let player_health = *health_query.iter(ecs).nth(0).unwrap();
+
+        let (player, map_level) = <(Entity, &Player)>::query()
+            .iter(ecs)
+            .find_map(|(entity, player)| Some((*entity, player.map_level)))
+            .unwrap();
+
+        Self {
+            inventory: gather_inventory(player, ecs),
+            map_level,
+            player_health,
+        }
+    }
+}
+
+fn gather_inventory(player: Entity, ecs: &SubWorld) -> Vec<String> {
+    <(&Item, &Name, &Carried)>::query()
+        .iter(ecs)
+        .filter(|(_, _, carried)| carried.0 == player)
+        .map(|(_, name, _)| name.0.clone())
+        .collect()
 }
