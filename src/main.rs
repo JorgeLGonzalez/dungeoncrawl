@@ -84,6 +84,26 @@ impl State {
     }
 
     fn advance_level(&mut self) {
+        self.remove_level_entities();
+        self.reset_fov();
+
+        let mut rng = RandomNumberGenerator::new();
+        let mut map_builder = MapBuilder::new(&mut rng);
+        let map_level = self.set_player_on_next_level(&map_builder);
+
+        Spawner::spawn(&mut self.ecs, &mut rng, &mut map_builder, map_level);
+        self.resources = create_resources(map_builder);
+    }
+
+    fn game_over(&mut self, ctx: &mut BTerm) {
+        end_screens::render_game_over(ctx);
+
+        if let Some(VirtualKeyCode::Key1) = ctx.key {
+            self.restart();
+        }
+    }
+
+    fn remove_level_entities(&mut self) {
         let player_entity = *<Entity>::query()
             .filter(component::<Player>())
             .iter(&mut self.ecs)
@@ -108,35 +128,14 @@ impl State {
             }
         }
         cb.flush(&mut self.ecs);
+    }
 
+    fn reset_fov(&mut self) {
         <&mut FieldOfView>::query()
             .iter_mut(&mut self.ecs)
             .for_each(|fov| {
                 fov.is_dirty = true;
             });
-
-        let mut rng = RandomNumberGenerator::new();
-        let mut map_builder = MapBuilder::new(&mut rng);
-        let mut map_level = 0;
-        <(&mut Player, &mut Point)>::query()
-            .iter_mut(&mut self.ecs)
-            .for_each(|(player, pos)| {
-                player.map_level += 1;
-                map_level = player.map_level;
-                pos.x = map_builder.player_start.x;
-                pos.y = map_builder.player_start.y;
-            });
-
-        Spawner::spawn(&mut self.ecs, &mut rng, &mut map_builder, map_level);
-        self.resources = create_resources(map_builder);
-    }
-
-    fn game_over(&mut self, ctx: &mut BTerm) {
-        end_screens::render_game_over(ctx);
-
-        if let Some(VirtualKeyCode::Key1) = ctx.key {
-            self.restart();
-        }
     }
 
     fn restart(&mut self) {
@@ -149,6 +148,20 @@ impl State {
         self.ecs = World::default();
         Spawner::spawn(&mut self.ecs, &mut rng, &mut mb, 0);
         self.resources = create_resources(mb);
+    }
+
+    fn set_player_on_next_level(&mut self, map_builder: &MapBuilder) -> u32 {
+        let mut map_level = 0;
+        <(&mut Player, &mut Point)>::query()
+            .iter_mut(&mut self.ecs)
+            .for_each(|(player, pos)| {
+                player.map_level += 1;
+                map_level = player.map_level;
+                pos.x = map_builder.player_start.x;
+                pos.y = map_builder.player_start.y;
+            });
+
+        map_level
     }
 
     fn victory(&mut self, ctx: &mut BTerm) {
