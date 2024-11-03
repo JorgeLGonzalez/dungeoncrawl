@@ -1,14 +1,17 @@
 mod end_screens;
 mod level_advancer;
+mod resources;
 mod spawner;
+
+use std::process::Command;
 
 use crate::{
     prelude::*,
     systems::{build_input_scheduler, build_monster_scheduler, build_player_scheduler},
 };
 use level_advancer::advance_level;
+use resources::create_resources;
 use spawner::Spawner;
-use std::{collections::HashSet, process::Command};
 
 pub struct State {
     ecs: World,
@@ -105,14 +108,4 @@ impl GameState for State {
 
         render_draw_buffer(ctx).expect("Render error");
     }
-}
-
-fn create_resources(mb: MapBuilder) -> Resources {
-    let mut resources = Resources::default();
-    resources.insert(mb.map);
-    resources.insert(Camera::new(mb.player_start));
-    resources.insert(TurnState::AwaitingInput);
-    resources.insert(mb.theme);
-
-    resources
 }
