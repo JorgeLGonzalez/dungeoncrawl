@@ -10,26 +10,25 @@ pub fn advance_level(ecs: &mut World, map_builder: &MapBuilder) -> u32 {
 }
 
 fn remove_level_entities(ecs: &mut World) {
+    let mut to_keep = HashSet::new();
+
     let player_entity = *<Entity>::query()
         .filter(component::<Player>())
         .iter(ecs)
         .nth(0)
         .unwrap();
+    to_keep.insert(player_entity);
 
-    let mut entities_to_keep = HashSet::new();
-    entities_to_keep.insert(player_entity);
-
-    <(Entity, &Carried)>::query()
-        .iter(ecs)
-        .filter(|(_, carry)| carry.0 == player_entity)
-        .map(|(e, _carry)| *e)
-        .for_each(|e| {
-            entities_to_keep.insert(e);
-        });
+    to_keep.extend(
+        <(Entity, &Carried)>::query()
+            .iter(ecs)
+            .filter(|(_, carry)| carry.0 == player_entity)
+            .map(|(e, _carry)| *e),
+    );
 
     let mut cb = CommandBuffer::new(ecs);
     for e in Entity::query().iter(ecs) {
-        if !entities_to_keep.contains(e) {
+        if !to_keep.contains(e) {
             cb.remove(*e);
         }
     }

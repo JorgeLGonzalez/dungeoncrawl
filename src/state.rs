@@ -3,8 +3,6 @@ mod level_advancer;
 mod resources;
 mod spawner;
 
-use std::process::Command;
-
 use crate::{
     prelude::*,
     systems::{build_input_scheduler, build_monster_scheduler, build_player_scheduler},
@@ -12,6 +10,7 @@ use crate::{
 use level_advancer::advance_level;
 use resources::create_resources;
 use spawner::Spawner;
+use std::process::Command;
 
 pub struct State {
     ecs: World,
