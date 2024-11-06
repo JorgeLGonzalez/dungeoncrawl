@@ -30,6 +30,7 @@ impl Template {
                 to_cp437(template.glyph),
                 render_order,
             ),
+            Name(template.name.clone()),
         ));
 
         match template.entity_type {
