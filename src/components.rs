@@ -74,7 +74,7 @@ pub struct Name(pub String);
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Player {
-    pub map_level: u32,
+    pub map_level: usize,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]

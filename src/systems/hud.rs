@@ -52,7 +52,7 @@ pub fn hud(ecs: &SubWorld) {
 
 struct HudInfo {
     inventory: Vec<String>,
-    map_level: u32,
+    map_level: usize,
     player_health: Health,
 }
 

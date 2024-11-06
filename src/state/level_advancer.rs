@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use crate::prelude::*;
 
-pub fn advance_level(ecs: &mut World, map_builder: &MapBuilder) -> u32 {
+pub fn advance_level(ecs: &mut World, map_builder: &MapBuilder) -> usize {
     remove_level_entities(ecs);
     reset_fov(ecs);
 
@@ -41,8 +41,8 @@ fn reset_fov(ecs: &mut World) {
     });
 }
 
-fn set_player_on_next_level(ecs: &mut World, map_builder: &MapBuilder) -> u32 {
-    let mut map_level = 0;
+fn set_player_on_next_level(ecs: &mut World, map_builder: &MapBuilder) -> usize {
+    let mut map_level: usize = 0;
     <(&mut Player, &mut Point)>::query()
         .iter_mut(ecs)
         .for_each(|(player, pos)| {

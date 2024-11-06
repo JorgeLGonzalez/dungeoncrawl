@@ -14,7 +14,7 @@ impl<'a> Spawner<'a> {
         ecs: &mut World,
         rng: &mut RandomNumberGenerator,
         map_builder: &mut MapBuilder,
-        level: u32,
+        level: usize,
     ) {
         let mut spawner = Spawner { ecs, rng };
 
