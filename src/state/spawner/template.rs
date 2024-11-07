@@ -7,6 +7,7 @@ use std::fs::File;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Template {
+    pub base_damage: Option<i32>,
     pub entity_type: EntityType,
     pub frequency: i32,
     pub glyph: char,
@@ -54,6 +55,13 @@ impl Template {
                     "MagicMap" => commands.add_component(entity, ProvidesDungeonMap),
                     _ => println!("Warning: we don't know how to provide {provides}"),
                 });
+        }
+
+        if let Some(damage) = &template.base_damage {
+            commands.add_component(entity, Damage(*damage));
+            if template.entity_type == EntityType::Item {
+                commands.add_component(entity, Weapon);
+            }
         }
     }
 }

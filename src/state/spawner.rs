@@ -53,6 +53,7 @@ impl<'a> Spawner<'a> {
 
     fn spawn_player(&mut self, pos: Point) {
         self.ecs.push((
+            Damage(1),
             FieldOfView::new(8),
             Health::new(10, 10),
             Player::default(),

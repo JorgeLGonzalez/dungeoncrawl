@@ -24,6 +24,9 @@ pub struct Carried(pub Entity);
 pub struct ChasingPlayer;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Damage(pub i32);
+
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Enemy;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -141,3 +144,6 @@ impl WantsToMove {
         }
     }
 }
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Weapon;
