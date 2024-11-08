@@ -11,17 +11,17 @@ pub struct PlayerActionHelper {
 impl PlayerActionHelper {
     pub fn new(key: Option<VirtualKeyCode>, ecs: &SubWorld) -> Self {
         let (player, pos) = get_player_info(ecs);
-        let mut determiner = Self {
+        let mut helper = Self {
             attacks: Vec::new(),
-            destination: key.and_then(delta).map(|delta| delta + pos),
+            destination: key.and_then(move_delta).map(|delta| delta + pos),
             key,
             player,
             pos,
         };
 
-        determiner.attacks = determiner.gather_attacks(ecs);
+        helper.attacks = helper.gather_attacks(ecs);
 
-        determiner
+        helper
     }
 
     pub fn determine_action(&self, ecs: &SubWorld) -> Option<PlayerAction> {
@@ -75,19 +75,12 @@ impl PlayerActionHelper {
         <(Entity, &Item, &Point)>::query()
             .iter(ecs)
             .filter(|(.., &item_pos)| item_pos == self.pos)
-            .for_each(|(&entity, ..)| {
-                commands.remove_component::<Point>(entity);
-                commands.add_component(entity, Carried(self.player));
+            .for_each(|(&item, ..)| {
+                commands.remove_component::<Point>(item);
+                commands.add_component(item, Carried(self.player));
 
-                if let Ok(e) = ecs.entry_ref(entity) {
-                    if e.get_component::<Weapon>().is_ok() {
-                        <(Entity, &Carried, &Weapon)>::query()
-                            .iter(ecs)
-                            .filter(|(_, c, _)| c.0 == self.player)
-                            .for_each(|(&e, ..)| {
-                                commands.remove(e);
-                            });
-                    }
+                if is_weapon(item, ecs) {
+                    self.discard_replaced_weapon(commands, ecs);
                 }
             });
     }
@@ -105,6 +98,15 @@ impl PlayerActionHelper {
             .unwrap_or_default()
     }
 
+    fn discard_replaced_weapon(&self, commands: &mut CommandBuffer, ecs: &SubWorld) {
+        <(Entity, &Carried, &Weapon)>::query()
+            .iter(ecs)
+            .filter(|(_, c, _)| c.0 == self.player)
+            .for_each(|(&weapon, ..)| {
+                commands.remove(weapon);
+            });
+    }
+
     fn select_item(&self, n: usize, ecs: &SubWorld) -> Option<PlayerAction> {
         <(Entity, &Item, &Carried)>::query()
             .iter(ecs)
@@ -117,7 +119,13 @@ impl PlayerActionHelper {
     }
 }
 
-fn delta(key: VirtualKeyCode) -> Option<Point> {
+fn is_weapon(item: Entity, ecs: &SubWorld) -> bool {
+    ecs.entry_ref(item)
+        .map(|e| e.get_component::<Weapon>().is_ok())
+        .is_ok()
+}
+
+fn move_delta(key: VirtualKeyCode) -> Option<Point> {
     match key {
         VirtualKeyCode::Left => Some(Point::new(-1, 0)),
         VirtualKeyCode::Right => Some(Point::new(1, 0)),
