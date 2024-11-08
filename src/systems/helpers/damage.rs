@@ -20,18 +20,17 @@ impl Damager {
     pub fn attack(&mut self, ecs: &mut SubWorld) {
         let damage = self.base_damage(ecs) + self.weapon_damage(ecs);
 
-        self.killed = if let Ok(health) = ecs
-            .entry_mut(self.victim)
-            .unwrap()
-            .get_component_mut::<Health>()
-        {
+        let mut victim_entity = ecs.entry_mut(self.victim).unwrap();
+        let health = victim_entity.get_component_mut::<Health>();
+
+        self.killed = if let Ok(health) = health {
             println!("Health before attack: {}", health.current);
             health.current -= damage;
             println!("Health after attack: {}", health.current);
 
             health.current < 1
         } else {
-            false
+            panic!("*** WARNING: attacked victim lacks Health!");
         }
     }
 
