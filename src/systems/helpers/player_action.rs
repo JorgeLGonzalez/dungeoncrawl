@@ -75,9 +75,20 @@ impl PlayerActionHelper {
         <(Entity, &Item, &Point)>::query()
             .iter(ecs)
             .filter(|(.., &item_pos)| item_pos == self.pos)
-            .for_each(|(entity, ..)| {
-                commands.remove_component::<Point>(*entity);
-                commands.add_component(*entity, Carried(self.player));
+            .for_each(|(&entity, ..)| {
+                commands.remove_component::<Point>(entity);
+                commands.add_component(entity, Carried(self.player));
+
+                if let Ok(e) = ecs.entry_ref(entity) {
+                    if e.get_component::<Weapon>().is_ok() {
+                        <(Entity, &Carried, &Weapon)>::query()
+                            .iter(ecs)
+                            .filter(|(_, c, _)| c.0 == self.player)
+                            .for_each(|(&e, ..)| {
+                                commands.remove(e);
+                            });
+                    }
+                }
             });
     }
 
