@@ -7,6 +7,7 @@ use crate::prelude::*;
 #[read_component(Item)]
 #[read_component(Player)]
 #[read_component(Point)]
+#[read_component(Weapon)]
 #[write_component(Health)]
 pub fn player_input(
     ecs: &mut SubWorld,
