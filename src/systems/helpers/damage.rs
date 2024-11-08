@@ -21,17 +21,15 @@ impl Damager {
         let damage = self.base_damage(ecs) + self.weapon_damage(ecs);
 
         let mut victim_entity = ecs.entry_mut(self.victim).unwrap();
-        let health = victim_entity.get_component_mut::<Health>();
+        let health = victim_entity
+            .get_component_mut::<Health>()
+            .expect("*** ERROR: attacked victim lacks Health!");
 
-        self.killed = if let Ok(health) = health {
-            println!("Health before attack: {}", health.current);
-            health.current -= damage;
-            println!("Health after attack: {}", health.current);
+        println!("Health before attack: {}", health.current);
+        health.current -= damage;
+        println!("Health after attack: {}", health.current);
 
-            health.current < 1
-        } else {
-            panic!("*** WARNING: attacked victim lacks Health!");
-        }
+        self.killed = health.current < 1
     }
 
     pub fn should_terminate(&self) -> bool {
