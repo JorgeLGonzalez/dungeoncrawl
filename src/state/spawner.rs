@@ -1,8 +1,8 @@
 mod template;
-
-use template::Templates;
+mod templates;
 
 use crate::prelude::*;
+use templates::Templates;
 
 pub struct Spawner<'a> {
     ecs: &'a mut World,

@@ -1,9 +1,7 @@
 use crate::prelude::*;
 use legion::systems::CommandBuffer;
-use ron::de::from_reader;
 use serde::Deserialize;
 use std::collections::HashSet;
-use std::fs::File;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Template {
@@ -18,36 +16,21 @@ pub struct Template {
 }
 
 impl Template {
-    pub fn spawn_entity(&self, &pt: &Point, template: &Template, commands: &mut CommandBuffer) {
-        let render_order = match template.entity_type {
-            EntityType::Enemy => RenderOrder::Enemy,
-            EntityType::Item => RenderOrder::Item,
-        };
+    pub fn spawn_entity(&self, pt: &Point, commands: &mut CommandBuffer) {
+        let entity = self.create_entity(pt, commands);
+        self.add_main_components(entity, commands);
+        self.add_effects(entity, commands);
+        self.add_damage(entity, commands);
+    }
 
-        let entity = commands.push((
-            pt.clone(),
-            Render::new(
-                ColorPair::new(WHITE, BLACK),
-                to_cp437(template.glyph),
-                render_order,
-            ),
-            Name(template.name.clone()),
-        ));
-
-        match template.entity_type {
-            EntityType::Enemy => {
-                commands.add_component(entity, Enemy);
-                commands.add_component(entity, FieldOfView::new(6));
-                commands.add_component(entity, ChasingPlayer);
-                commands.add_component(
-                    entity,
-                    Health::new(template.hp.unwrap(), template.hp.unwrap()),
-                );
-            }
-            EntityType::Item => commands.add_component(entity, Item),
+    fn add_damage(&self, entity: Entity, commands: &mut CommandBuffer) {
+        if let Some(damage) = &self.base_damage {
+            commands.add_component(entity, Damage(*damage));
         }
+    }
 
-        if let Some(effects) = &template.provides {
+    fn add_effects(&self, entity: Entity, commands: &mut CommandBuffer) {
+        if let Some(effects) = &self.provides {
             effects
                 .iter()
                 .for_each(|(provides, n)| match provides.as_str() {
@@ -56,13 +39,35 @@ impl Template {
                     _ => println!("Warning: we don't know how to provide {provides}"),
                 });
         }
+    }
 
-        if let Some(damage) = &template.base_damage {
-            commands.add_component(entity, Damage(*damage));
-            if template.entity_type == EntityType::Item {
-                commands.add_component(entity, Weapon);
+    fn add_main_components(&self, entity: Entity, commands: &mut CommandBuffer) {
+        match self.entity_type {
+            EntityType::Enemy => {
+                commands.add_component(entity, Enemy);
+                commands.add_component(entity, FieldOfView::new(6));
+                commands.add_component(entity, ChasingPlayer);
+                commands.add_component(entity, Health::new(self.hp.unwrap(), self.hp.unwrap()));
+            }
+            EntityType::Item => {
+                commands.add_component(entity, Item);
+                if self.base_damage.is_some() {
+                    commands.add_component(entity, Weapon);
+                }
             }
         }
+    }
+
+    fn create_entity(&self, pt: &Point, commands: &mut CommandBuffer) -> Entity {
+        commands.push((
+            pt.clone(),
+            Render::new(
+                ColorPair::new(WHITE, BLACK),
+                to_cp437(self.glyph),
+                determine_render_order(&self.entity_type),
+            ),
+            Name(self.name.clone()),
+        ))
     }
 }
 
@@ -72,41 +77,9 @@ pub enum EntityType {
     Item,
 }
 
-#[derive(Clone, Debug, Deserialize)]
-pub struct Templates {
-    pub entities: Vec<Template>,
-}
-
-impl Templates {
-    pub fn load() -> Self {
-        let file = File::open("resources/template.ron").expect("Failed opening file.");
-        from_reader(file).expect("Unable to load templates")
-    }
-
-    pub fn spawn_entities(
-        &self,
-        ecs: &mut World,
-        rng: &mut RandomNumberGenerator,
-        level: usize,
-        spawn_points: &[Point],
-    ) {
-        let mut available_entities = Vec::new();
-        self.entities
-            .iter()
-            .filter(|e| e.levels.contains(&level))
-            .for_each(|t| {
-                for _ in 0..t.frequency {
-                    available_entities.push(t);
-                }
-            });
-
-        let mut commands = CommandBuffer::new(ecs);
-        spawn_points.iter().for_each(|pt| {
-            if let Some(entity) = rng.random_slice_entry(&available_entities) {
-                entity.spawn_entity(pt, entity, &mut commands);
-            }
-        });
-
-        commands.flush(ecs);
+fn determine_render_order(entity_type: &EntityType) -> RenderOrder {
+    match entity_type {
+        EntityType::Enemy => RenderOrder::Enemy,
+        EntityType::Item => RenderOrder::Item,
     }
 }
