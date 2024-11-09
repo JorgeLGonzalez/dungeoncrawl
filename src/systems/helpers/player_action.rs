@@ -72,15 +72,18 @@ impl PlayerActionHelper {
     }
 
     pub fn pick_up_item(&self, ecs: &mut SubWorld, commands: &mut CommandBuffer) {
-        <(Entity, &Item, &Point)>::query()
+        <(Entity, &Name, &Item, &Point)>::query()
             .iter(ecs)
             .filter(|(.., &item_pos)| item_pos == self.pos)
-            .for_each(|(&item, ..)| {
+            .for_each(|(&item, name, ..)| {
                 commands.remove_component::<Point>(item);
                 commands.add_component(item, Carried(self.player));
 
                 if is_weapon(item, ecs) {
                     self.discard_replaced_weapon(commands, ecs);
+                    println!("Player picks up {} weapon", name.0)
+                } else {
+                    println!("Player picks up {}", name.0);
                 }
             });
     }
@@ -99,11 +102,12 @@ impl PlayerActionHelper {
     }
 
     fn discard_replaced_weapon(&self, commands: &mut CommandBuffer, ecs: &SubWorld) {
-        <(Entity, &Carried, &Weapon)>::query()
+        <(Entity, &Carried, &Weapon, &Name)>::query()
             .iter(ecs)
-            .filter(|(_, c, _)| c.0 == self.player)
-            .for_each(|(&weapon, ..)| {
+            .filter(|(_, carried_weapon, ..)| carried_weapon.0 == self.player)
+            .for_each(|(&weapon, .., name)| {
                 commands.remove(weapon);
+                println!("Player drops {}", name.0);
             });
     }
 
@@ -121,8 +125,7 @@ impl PlayerActionHelper {
 
 fn is_weapon(item: Entity, ecs: &SubWorld) -> bool {
     ecs.entry_ref(item)
-        .map(|e| e.get_component::<Weapon>().is_ok())
-        .is_ok()
+        .map_or(false, |e| e.get_component::<Weapon>().is_ok())
 }
 
 fn move_delta(key: VirtualKeyCode) -> Option<Point> {

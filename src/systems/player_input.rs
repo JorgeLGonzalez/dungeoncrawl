@@ -5,6 +5,7 @@ use crate::prelude::*;
 #[read_component(Carried)]
 #[read_component(Enemy)]
 #[read_component(Item)]
+#[read_component(Name)]
 #[read_component(Player)]
 #[read_component(Point)]
 #[read_component(Weapon)]
