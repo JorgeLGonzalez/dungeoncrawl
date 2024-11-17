@@ -1,5 +1,6 @@
 mod camera;
 mod components;
+mod events;
 mod game_stage;
 mod map;
 mod map_builder;
@@ -12,6 +13,7 @@ mod prelude {
 
     pub use crate::camera::*;
     pub use crate::components::*;
+    pub use crate::events::*;
     pub use crate::game_stage::*;
     pub use crate::map::*;
     pub use crate::map_builder::*;

@@ -147,22 +147,6 @@ impl WantsToAttack {
     }
 }
 
-#[derive(Component, PartialEq)]
-// #[derive(Clone, Component, Copy, Debug, PartialEq)]
-pub struct WantsToMove {
-    pub destination: Point,
-    pub entity: Entity,
-}
-
-impl WantsToMove {
-    pub fn new(entity: Entity, destination: Point) -> Self {
-        Self {
-            entity,
-            destination,
-        }
-    }
-}
-
 #[derive(Component)]
 // #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct Weapon;

@@ -22,6 +22,8 @@ impl State {
         ecs.insert_resource(mb.map);
         ecs.insert_resource(Camera::new(mb.player_start));
 
+        ecs.add_event::<WantsToMove>();
+
         ecs.add_stage_after(
             CoreStage::Update,
             GameStage::MovePlayer,
@@ -29,12 +31,12 @@ impl State {
         )
         .add_stage_after(
             GameStage::MovePlayer,
-            GameStage::MoveMonsters,
+            GameStage::Collisions,
             SystemStage::parallel(),
         )
         .add_stage_after(
+            GameStage::Collisions,
             GameStage::MoveMonsters,
-            GameStage::MonsterCollisions,
             SystemStage::parallel(),
         );
 

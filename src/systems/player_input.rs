@@ -2,8 +2,9 @@ use super::helpers::{PlayerAction, PlayerActionHelper};
 use crate::prelude::*;
 
 pub fn player_input(
-    mut player_query: Query<&mut PointC, With<Player>>,
-    (map, key, mut camera): (Res<Map>, Option<Res<VirtualKeyCode>>, ResMut<Camera>),
+    player_query: Query<(Entity, &PointC), With<Player>>,
+    key: Option<Res<VirtualKeyCode>>,
+    mut move_events: EventWriter<WantsToMove>,
     mut commands: Commands,
 ) {
     if let Some(key) = key.as_deref() {
@@ -16,12 +17,9 @@ pub fn player_input(
         };
 
         if delta.x != 0 || delta.y != 0 {
-            let mut pos = player_query.single_mut();
+            let (player, pos) = player_query.single();
             let destination = pos.0 + delta;
-            if map.can_enter_tile(destination) {
-                pos.0 = destination;
-                camera.on_player_move(destination);
-            }
+            move_events.send(WantsToMove::new(player, destination));
         }
 
         commands.insert_resource(TurnState::PlayerTurn);

@@ -1,5 +1,25 @@
-// use crate::prelude::*;
-// use world::EntryRef;
+use crate::prelude::*;
+
+pub fn movement(
+    mut commands: Commands,
+    mut move_events: EventReader<WantsToMove>,
+    query: Query<&Player>,
+    (map, mut camera): (Res<Map>, ResMut<Camera>),
+) {
+    for &WantsToMove {
+        destination,
+        entity,
+    } in move_events.iter()
+    {
+        if map.can_enter_tile(destination) {
+            commands.entity(entity).insert(PointC(destination));
+
+            if query.get(entity).is_ok() {
+                camera.on_player_move(destination);
+            }
+        }
+    }
+}
 
 // #[system(for_each)]
 // #[read_component(FieldOfView)]

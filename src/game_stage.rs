@@ -2,9 +2,9 @@ use crate::prelude::*;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, StageLabel)]
 pub enum GameStage {
+    Collisions,
     MovePlayer,
     MoveMonsters,
-    MonsterCollisions,
 }
 
 /*
