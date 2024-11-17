@@ -16,7 +16,16 @@ pub struct Template {
 }
 
 impl Template {
-    pub fn spawn_entity(&self, pt: &Point, commands: &mut CommandBuffer) {
+    pub fn spawn_entity(&self, pt: &Point, world: &mut World) {
+        world.spawn().insert_bundle((
+            PointC(pt.clone()),
+            Render::new(
+                ColorPair::new(WHITE, BLACK),
+                to_cp437(self.glyph),
+                determine_render_order(&self.entity_type),
+            ),
+            Name(self.name.clone()),
+        ));
         // let entity = self.create_entity(pt, commands);
         // self.add_main_components(entity, commands);
         // self.add_effects(entity, commands);
