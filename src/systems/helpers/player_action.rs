@@ -24,40 +24,40 @@ impl PlayerActionHelper {
         helper
     }
 
-    pub fn determine_action(&self, ecs: &SubWorld) -> Option<PlayerAction> {
-        if self.key.is_none() {
-            return None;
-        }
+    // pub fn determine_action(&self, ecs: &SubWorld) -> Option<PlayerAction> {
+    //     if self.key.is_none() {
+    //         return None;
+    //     }
 
-        if !self.attacks.is_empty() {
-            return Some(PlayerAction::Attack(self.attacks.clone()));
-        }
+    //     if !self.attacks.is_empty() {
+    //         return Some(PlayerAction::Attack(self.attacks.clone()));
+    //     }
 
-        // if let Some(destination) = self.destination {
-        //     return Some(PlayerAction::Move(vec![(
-        //         (),
-        //         WantsToMove::new(self.player, destination),
-        //     )]));
-        // }
+    //     // if let Some(destination) = self.destination {
+    //     //     return Some(PlayerAction::Move(vec![(
+    //     //         (),
+    //     //         WantsToMove::new(self.player, destination),
+    //     //     )]));
+    //     // }
 
-        // let key = self.key.unwrap();
-        // match key {
-        //     VirtualKeyCode::G => Some(PlayerAction::GetMagicItem),
-        //     VirtualKeyCode::P => Some(PlayerAction::ShowPlayerPosition),
-        //     VirtualKeyCode::Key1 => self.select_item(0, ecs),
-        //     VirtualKeyCode::Key2 => self.select_item(1, ecs),
-        //     VirtualKeyCode::Key3 => self.select_item(2, ecs),
-        //     VirtualKeyCode::Key4 => self.select_item(3, ecs),
-        //     VirtualKeyCode::Key5 => self.select_item(4, ecs),
-        //     VirtualKeyCode::Key6 => self.select_item(5, ecs),
-        //     VirtualKeyCode::Key7 => self.select_item(6, ecs),
-        //     VirtualKeyCode::Key8 => self.select_item(7, ecs),
-        //     VirtualKeyCode::Key9 => self.select_item(8, ecs),
-        //     // _ => Action::Heal,
-        //     _ => Some(PlayerAction::Wait),
-        // }
-        None
-    }
+    //     // let key = self.key.unwrap();
+    //     // match key {
+    //     //     VirtualKeyCode::G => Some(PlayerAction::GetMagicItem),
+    //     //     VirtualKeyCode::P => Some(PlayerAction::ShowPlayerPosition),
+    //     //     VirtualKeyCode::Key1 => self.select_item(0, ecs),
+    //     //     VirtualKeyCode::Key2 => self.select_item(1, ecs),
+    //     //     VirtualKeyCode::Key3 => self.select_item(2, ecs),
+    //     //     VirtualKeyCode::Key4 => self.select_item(3, ecs),
+    //     //     VirtualKeyCode::Key5 => self.select_item(4, ecs),
+    //     //     VirtualKeyCode::Key6 => self.select_item(5, ecs),
+    //     //     VirtualKeyCode::Key7 => self.select_item(6, ecs),
+    //     //     VirtualKeyCode::Key8 => self.select_item(7, ecs),
+    //     //     VirtualKeyCode::Key9 => self.select_item(8, ecs),
+    //     //     // _ => Action::Heal,
+    //     //     _ => Some(PlayerAction::Wait),
+    //     // }
+    //     None
+    // }
 
     // pub fn heal(&self, ecs: &mut SubWorld) {
     //     if let Ok(health) = ecs

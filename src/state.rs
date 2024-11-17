@@ -2,7 +2,7 @@ mod end_screens;
 mod level_advancer;
 mod spawner;
 
-use crate::{prelude::*, systems::build_system_set};
+use crate::{prelude::*, systems::build_system_sets};
 use level_advancer::advance_level;
 use spawner::Spawner;
 use std::process::Command;
@@ -22,8 +22,25 @@ impl State {
         ecs.insert_resource(mb.map);
         ecs.insert_resource(Camera::new(mb.player_start));
 
-        ecs.add_system_set(build_system_set());
+        ecs.add_stage_after(
+            CoreStage::Update,
+            GameStage::MovePlayer,
+            SystemStage::parallel(),
+        )
+        .add_stage_after(
+            GameStage::MovePlayer,
+            GameStage::MoveMonsters,
+            SystemStage::parallel(),
+        )
+        .add_stage_after(
+            GameStage::MoveMonsters,
+            GameStage::MonsterCollisions,
+            SystemStage::parallel(),
+        );
 
+        ecs.insert_resource(TurnState::AwaitingInput);
+
+        build_system_sets(&mut ecs);
         Self { ecs }
     }
 

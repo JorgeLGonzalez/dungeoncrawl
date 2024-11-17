@@ -23,6 +23,8 @@ pub fn player_input(
                 camera.on_player_move(destination);
             }
         }
+
+        commands.insert_resource(TurnState::PlayerTurn);
     }
     // if let Ok(mut pos) = player_query.get_single_mut() {
     //     let helper = PlayerActionHelper::new(key, pos.0);
