@@ -1,8 +1,7 @@
+use crate::prelude::*;
 use std::collections::HashSet;
 
-use crate::prelude::*;
-
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct ActivateItem {
     pub item: Entity,
     pub used_by: Entity,
@@ -14,22 +13,28 @@ impl ActivateItem {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Component)]
+// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct AmuletOfYala; // YALA = Yet Another Lost Amulet :)
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Component)]
+// #[derive(Clone, Component, Debug, PartialEq)]
 pub struct Carried(pub Entity);
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Component)]
+// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct ChasingPlayer;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Component)]
+// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct Damage(pub i32);
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Component)]
+// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct Enemy;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Component)]
+// #[derive(Clone, Component, Debug, PartialEq)]
 pub struct FieldOfView {
     pub is_dirty: bool,
     pub radius: i32,
@@ -54,7 +59,8 @@ impl FieldOfView {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Component)]
+// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct Health {
     pub current: i32,
     pub max: i32,
@@ -66,21 +72,29 @@ impl Health {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Component)]
+// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct Item;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Component)]
+// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct MovingRandomly;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Component)]
+// #[derive(Clone, Component, PartialEq)]
 pub struct Name(pub String);
 
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Component, Default)]
+// #[derive(Clone, Component, Copy, Debug, Default, PartialEq)]
 pub struct Player {
     pub map_level: usize,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Component)]
+pub struct PointC(pub Point);
+
+#[derive(Clone, Component, Copy)]
+// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct ProvidesHealing {
     pub amount: i32,
 }
@@ -91,10 +105,12 @@ impl ProvidesHealing {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Component)]
+// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct ProvidesDungeonMap;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Component, Copy)]
+// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct Render {
     pub color: ColorPair,
     pub glyph: FontCharType,
@@ -118,7 +134,8 @@ pub enum RenderOrder {
     Player = 2,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Component, PartialEq)]
+// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct WantsToAttack {
     pub attacker: Entity,
     pub victim: Entity,
@@ -130,7 +147,8 @@ impl WantsToAttack {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Component, PartialEq)]
+// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct WantsToMove {
     pub destination: Point,
     pub entity: Entity,
@@ -145,5 +163,6 @@ impl WantsToMove {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Component)]
+// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct Weapon;

@@ -7,12 +7,14 @@ mod systems;
 mod turn_state;
 
 mod prelude {
+    pub use bracket_lib::prelude::*; // force to import first
+
     pub use crate::camera::*;
     pub use crate::components::*;
     pub use crate::map::*;
     pub use crate::map_builder::*;
     pub use crate::turn_state::*;
-    pub use bracket_lib::prelude::*;
+    pub use bevy::prelude::*;
     pub use legion::systems::CommandBuffer;
     pub use legion::world::SubWorld;
     pub use legion::*;

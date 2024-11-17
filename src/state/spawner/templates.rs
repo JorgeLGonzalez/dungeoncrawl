@@ -32,13 +32,13 @@ impl Templates {
                 }
             });
 
-        let mut commands = CommandBuffer::new(ecs);
-        spawn_points.iter().for_each(|pt| {
-            if let Some(entity) = rng.random_slice_entry(&available_entities) {
-                entity.spawn_entity(pt, &mut commands);
-            }
-        });
+        // let mut commands = CommandBuffer::new(ecs);
+        // spawn_points.iter().for_each(|pt| {
+        //     if let Some(entity) = rng.random_slice_entry(&available_entities) {
+        //         entity.spawn_entity(pt, &mut commands);
+        //     }
+        // });
 
-        commands.flush(ecs);
+        // commands.flush(ecs);
     }
 }

@@ -1,40 +1,39 @@
 use super::helpers::{PlayerAction, PlayerActionHelper};
 use crate::prelude::*;
 
-#[system]
-#[read_component(Carried)]
-#[read_component(Enemy)]
-#[read_component(Item)]
-#[read_component(Name)]
-#[read_component(Player)]
-#[read_component(Point)]
-#[read_component(Weapon)]
-#[write_component(Health)]
 pub fn player_input(
-    ecs: &mut SubWorld,
-    commands: &mut CommandBuffer,
-    #[resource] key: &Option<VirtualKeyCode>,
-    #[resource] turn_state: &mut TurnState,
+    mut player_query: Query<&mut PointC, With<Player>>,
+    (map, key, mut camera): (Res<Map>, Option<Res<VirtualKeyCode>>, ResMut<Camera>),
+    mut commands: Commands,
 ) {
-    let helper = PlayerActionHelper::new(*key, ecs);
+    if let Ok(mut pos) = player_query.get_single_mut() {
+        let helper = PlayerActionHelper::new(key, pos.0);
 
-    if let Some(action) = helper.determine_action(ecs) {
-        match action {
-            PlayerAction::ActivateItem(a) => {
-                commands.extend(a);
-            }
-            PlayerAction::Attack(a) => {
-                commands.extend(a);
-            }
-            PlayerAction::GetMagicItem => helper.pick_up_item(ecs, commands),
-            PlayerAction::Heal => helper.heal(ecs), // no longer in use
-            PlayerAction::Move(m) => {
-                commands.extend(m);
-            }
-            PlayerAction::ShowPlayerPosition => println!(">>>Player at {:?}", helper.pos),
-            PlayerAction::Wait => (),
-        };
+        // if let Some(action) = helper.determine_action(ecs) {
+        //     match action {
+        //         PlayerAction::ActivateItem(a) => {
+        //             // commands.extend(a);
+        //         }
+        //         PlayerAction::Attack(a) => {
+        //             // commands.extend(a);
+        //         }
+        //         PlayerAction::GetMagicItem => {}
+        //         // PlayerAction::GetMagicItem => helper.pick_up_item(ecs, commands),
+        //         PlayerAction::Heal => (), // no longer in use
+        //         // PlayerAction::Heal => helper.heal(ecs), // no longer in use
+        //         PlayerAction::Move(m) => {}
+        //         PlayerAction::ShowPlayerPosition => println!(">>>Player at {:?}", helper.pos),
+        //         PlayerAction::Wait => (),
+        //     };
 
-        *turn_state = TurnState::PlayerTurn;
-    };
+        // *turn_state = TurnState::PlayerTurn;
+
+        // };
+        commands.remove_resource::<VirtualKeyCode>();
+    }
 }
+
+/*
+In Bevy, keyboard input is handled differently. But here we are stull using bracket-lib.
+See https://saveriomiroddi.github.io/learn_bevy_ecs_by_ripping_off/06_01/keyboard_input.html
+ */

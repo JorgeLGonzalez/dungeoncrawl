@@ -1,49 +1,40 @@
 mod end_screens;
 mod level_advancer;
-mod resources;
 mod spawner;
 
-use crate::{
-    prelude::*,
-    systems::{build_input_scheduler, build_monster_scheduler, build_player_scheduler},
-};
+use crate::{prelude::*, systems::build_system_set};
 use level_advancer::advance_level;
-use resources::create_resources;
 use spawner::Spawner;
 use std::process::Command;
 
 pub struct State {
-    ecs: World,
-    resources: Resources,
-    input_systems: Schedule,
-    monster_systems: Schedule,
-    player_systems: Schedule,
+    ecs: App,
 }
 
 impl State {
     pub fn new() -> Self {
         let mut rng = RandomNumberGenerator::new();
         let mut mb = MapBuilder::new(&mut rng);
-        let mut ecs = World::default();
-        Spawner::spawn(&mut ecs, &mut rng, &mut mb, 0);
-        let resources = create_resources(mb);
+        let mut ecs = App::new();
+        // This is not a strict-ECS approach (a system would), but we mimic the source project design.
+        Spawner::spawn(&mut ecs.world, &mut rng, &mut mb, 0);
 
-        Self {
-            ecs,
-            resources,
-            input_systems: build_input_scheduler(),
-            monster_systems: build_monster_scheduler(),
-            player_systems: build_player_scheduler(),
-        }
+        ecs.insert_resource(mb.map);
+        ecs.insert_resource(Camera::new(mb.player_start));
+
+        ecs.add_system_set(build_system_set());
+
+        Self { ecs }
     }
 
     fn advance_level(&mut self) {
-        let mut rng = RandomNumberGenerator::new();
-        let mut map_builder = MapBuilder::new(&mut rng);
+        // let mut rng = RandomNumberGenerator::new();
+        // let mut map_builder = MapBuilder::new(&mut rng);
 
-        let level = advance_level(&mut self.ecs, &map_builder);
-        Spawner::spawn(&mut self.ecs, &mut rng, &mut map_builder, level);
-        self.resources = create_resources(map_builder);
+        // let level = advance_level(&mut self.ecs, &map_builder);
+        // Spawner::spawn(&mut self.ecs, &mut rng, &mut map_builder, level);
+
+        // self.create_resources(mb);
     }
 
     fn game_over(&mut self, ctx: &mut BTerm) {
@@ -55,15 +46,15 @@ impl State {
     }
 
     fn restart(&mut self) {
-        Command::new("clear")
-            .status()
-            .expect("Failed to clear terminal");
+        // Command::new("clear")
+        //     .status()
+        //     .expect("Failed to clear terminal");
 
-        let mut rng = RandomNumberGenerator::new();
-        let mut mb = MapBuilder::new(&mut rng);
-        self.ecs = World::default();
-        Spawner::spawn(&mut self.ecs, &mut rng, &mut mb, 0);
-        self.resources = create_resources(mb);
+        // let mut rng = RandomNumberGenerator::new();
+        // let mut mb = MapBuilder::new(&mut rng);
+        // self.ecs = World::default();
+        // Spawner::spawn(&mut self.ecs, &mut rng, &mut mb, 0);
+        // self.resources = create_resources(mb);
     }
 
     fn victory(&mut self, ctx: &mut BTerm) {
@@ -84,26 +75,34 @@ impl GameState for State {
         ctx.set_active_console(ConsoleLayer::Hud.into());
         ctx.cls();
 
-        self.resources.insert(ctx.key);
-
-        ctx.set_active_console(ConsoleLayer::Map.into());
-        self.resources.insert(Point::from_tuple(ctx.mouse_pos()));
-
-        let current_state = self.resources.get::<TurnState>().unwrap().clone();
-        match current_state {
-            TurnState::AwaitingInput => self
-                .input_systems
-                .execute(&mut self.ecs, &mut self.resources),
-            TurnState::GameOver => self.game_over(ctx),
-            TurnState::MonsterTurn => self
-                .monster_systems
-                .execute(&mut self.ecs, &mut self.resources),
-            TurnState::NextLevel => self.advance_level(),
-            TurnState::PlayerTurn => self
-                .player_systems
-                .execute(&mut self.ecs, &mut self.resources),
-            TurnState::Victory => self.victory(ctx),
+        if let Some(key) = ctx.key {
+            self.ecs.insert_resource(key);
+        } else {
+            // In order to keep consistency with the Legion version, we need to access Bevy's World
+            // directly, since App doesn't support removing resources.
+            self.ecs.world.remove_resource::<VirtualKeyCode>();
         }
+
+        // ctx.set_active_console(ConsoleLayer::Map.into());
+        // self.resources.insert(Point::from_tuple(ctx.mouse_pos()));
+
+        // let current_state = self.resources.get::<TurnState>().unwrap().clone();
+        // match current_state {
+        //     TurnState::AwaitingInput => self
+        //         .input_systems
+        //         .execute(&mut self.ecs, &mut self.resources),
+        //     TurnState::GameOver => self.game_over(ctx),
+        //     TurnState::MonsterTurn => self
+        //         .monster_systems
+        //         .execute(&mut self.ecs, &mut self.resources),
+        //     TurnState::NextLevel => self.advance_level(),
+        //     TurnState::PlayerTurn => self
+        //         .player_systems
+        //         .execute(&mut self.ecs, &mut self.resources),
+        //     TurnState::Victory => self.victory(ctx),
+        // }
+
+        self.ecs.update();
 
         render_draw_buffer(ctx).expect("Render error");
     }

@@ -58,26 +58,32 @@ struct HudInfo {
 
 impl HudInfo {
     fn new(ecs: &SubWorld) -> Self {
-        let mut health_query = <&Health>::query().filter(component::<Player>());
-        let player_health = *health_query.iter(ecs).nth(0).unwrap();
+        // let mut health_query = <&Health>::query().filter(component::<Player>());
+        // let player_health = *health_query.iter(ecs).nth(0).unwrap();
 
-        let (player, map_level) = <(Entity, &Player)>::query()
-            .iter(ecs)
-            .find_map(|(entity, player)| Some((*entity, player.map_level)))
-            .unwrap();
+        // let (player, map_level) = <(Entity, &Player)>::query()
+        //     .iter(ecs)
+        //     .find_map(|(entity, player)| Some((*entity, player.map_level)))
+        //     .unwrap();
 
+        // Self {
+        //     inventory: gather_inventory(player, ecs),
+        //     map_level,
+        //     player_health,
+        // }
         Self {
-            inventory: gather_inventory(player, ecs),
-            map_level,
-            player_health,
+            inventory: Vec::new(),
+            map_level: 0,
+            player_health: Health::new(1, 1),
         }
     }
 }
 
 fn gather_inventory(player: Entity, ecs: &SubWorld) -> Vec<String> {
-    <(&Item, &Name, &Carried)>::query()
-        .iter(ecs)
-        .filter(|(_, _, carried)| carried.0 == player)
-        .map(|(_, name, _)| name.0.clone())
-        .collect()
+    // <(&Item, &Name, &Carried)>::query()
+    //     .iter(ecs)
+    //     .filter(|(_, _, carried)| carried.0 == player)
+    //     .map(|(_, name, _)| name.0.clone())
+    //     .collect()
+    vec![]
 }

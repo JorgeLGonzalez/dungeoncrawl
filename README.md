@@ -4,6 +4,8 @@ From [Hands-on Rust: Effective Learning through 2D Game Development and Play](ht
 
 See https://opengameart.org/ for more game art.
 
+Ported to Bevy based on [Learn Bevy's ECS by ripping off someone else's project](https://saveriomiroddi.github.io/learn_bevy_ecs_by_ripping_off/introduction.html)
+
 See [Run Your Rust Games in a Browser](https://hands-on-rust.com/2021/11/06/run-your-rust-games-in-a-browser-hands-on-rust-bonus-content/)
 
 ## Issue: periphery walls

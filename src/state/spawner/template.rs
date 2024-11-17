@@ -17,15 +17,15 @@ pub struct Template {
 
 impl Template {
     pub fn spawn_entity(&self, pt: &Point, commands: &mut CommandBuffer) {
-        let entity = self.create_entity(pt, commands);
-        self.add_main_components(entity, commands);
-        self.add_effects(entity, commands);
-        self.add_damage(entity, commands);
+        // let entity = self.create_entity(pt, commands);
+        // self.add_main_components(entity, commands);
+        // self.add_effects(entity, commands);
+        // self.add_damage(entity, commands);
     }
 
     fn add_damage(&self, entity: Entity, commands: &mut CommandBuffer) {
         if let Some(damage) = &self.base_damage {
-            commands.add_component(entity, Damage(*damage));
+            // commands.add_component(entity, Damage(*damage));
         }
     }
 
@@ -34,8 +34,8 @@ impl Template {
             effects
                 .iter()
                 .for_each(|(provides, n)| match provides.as_str() {
-                    "Healing" => commands.add_component(entity, ProvidesHealing::new(*n)),
-                    "MagicMap" => commands.add_component(entity, ProvidesDungeonMap),
+                    // "Healing" => commands.add_component(entity, ProvidesHealing::new(*n)),
+                    // "MagicMap" => commands.add_component(entity, ProvidesDungeonMap),
                     _ => println!("Warning: we don't know how to provide {provides}"),
                 });
         }
@@ -44,31 +44,31 @@ impl Template {
     fn add_main_components(&self, entity: Entity, commands: &mut CommandBuffer) {
         match self.entity_type {
             EntityType::Enemy => {
-                commands.add_component(entity, Enemy);
-                commands.add_component(entity, FieldOfView::new(6));
-                commands.add_component(entity, ChasingPlayer);
-                commands.add_component(entity, Health::new(self.hp.unwrap(), self.hp.unwrap()));
+                // commands.add_component(entity, Enemy);
+                // commands.add_component(entity, FieldOfView::new(6));
+                // commands.add_component(entity, ChasingPlayer);
+                // commands.add_component(entity, Health::new(self.hp.unwrap(), self.hp.unwrap()));
             }
             EntityType::Item => {
-                commands.add_component(entity, Item);
-                if self.base_damage.is_some() {
-                    commands.add_component(entity, Weapon);
-                }
+                // commands.add_component(entity, Item);
+                // if self.base_damage.is_some() {
+                //     commands.add_component(entity, Weapon);
+                // }
             }
         }
     }
 
-    fn create_entity(&self, pt: &Point, commands: &mut CommandBuffer) -> Entity {
-        commands.push((
-            pt.clone(),
-            Render::new(
-                ColorPair::new(WHITE, BLACK),
-                to_cp437(self.glyph),
-                determine_render_order(&self.entity_type),
-            ),
-            Name(self.name.clone()),
-        ))
-    }
+    // fn create_entity(&self, pt: &Point, commands: &mut CommandBuffer) -> Entity {
+    //     commands.push((
+    //         pt.clone(),
+    //         Render::new(
+    //             ColorPair::new(WHITE, BLACK),
+    //             to_cp437(self.glyph),
+    //             determine_render_order(&self.entity_type),
+    //         ),
+    //         Name(self.name.clone()),
+    //     ))
+    // }
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
