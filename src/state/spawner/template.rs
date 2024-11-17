@@ -27,6 +27,7 @@ impl Template {
                 ),
                 Name(self.name.clone()),
                 Enemy,
+                MovingRandomly,
             ));
         } else {
             world.spawn().insert_bundle((
