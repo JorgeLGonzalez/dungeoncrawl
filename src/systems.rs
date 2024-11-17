@@ -43,10 +43,18 @@ pub fn build_system_sets(app: &mut App) {
     );
 
     app.add_system_set_to_stage(
-        GameStage::MoveMonsters,
+        GameStage::GenerateMonsterMoves,
         ConditionSet::new()
             .run_if_resource_equals(TurnState::MonsterTurn)
             .with_system(random_move::random_move)
+            .into(),
+    );
+
+    app.add_system_set_to_stage(
+        GameStage::MoveMonsters,
+        ConditionSet::new()
+            .run_if_resource_equals(TurnState::MonsterTurn)
+            .with_system(movement::movement)
             .with_system(end_turn::end_turn)
             .into(),
     );

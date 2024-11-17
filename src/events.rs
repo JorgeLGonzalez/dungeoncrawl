@@ -2,6 +2,18 @@ use bevy::prelude::Entity;
 use bracket_lib::prelude::Point;
 
 #[derive(PartialEq)]
+pub struct WantsToAttack {
+    pub attacker: Entity,
+    pub victim: Entity,
+}
+
+impl WantsToAttack {
+    pub fn new(attacker: Entity, victim: Entity) -> Self {
+        Self { attacker, victim }
+    }
+}
+
+#[derive(PartialEq)]
 pub struct WantsToMove {
     pub destination: Point,
     pub entity: Entity,

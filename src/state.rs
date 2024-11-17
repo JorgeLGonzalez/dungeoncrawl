@@ -36,6 +36,11 @@ impl State {
         )
         .add_stage_after(
             GameStage::Collisions,
+            GameStage::GenerateMonsterMoves,
+            SystemStage::parallel(),
+        )
+        .add_stage_after(
+            GameStage::GenerateMonsterMoves,
             GameStage::MoveMonsters,
             SystemStage::parallel(),
         );
@@ -43,6 +48,7 @@ impl State {
         ecs.insert_resource(TurnState::AwaitingInput);
 
         build_system_sets(&mut ecs);
+
         Self { ecs }
     }
 

@@ -134,19 +134,6 @@ pub enum RenderOrder {
     Player = 2,
 }
 
-#[derive(Clone, Component, PartialEq)]
-// #[derive(Clone, Component, Copy, Debug, PartialEq)]
-pub struct WantsToAttack {
-    pub attacker: Entity,
-    pub victim: Entity,
-}
-
-impl WantsToAttack {
-    pub fn new(attacker: Entity, victim: Entity) -> Self {
-        Self { attacker, victim }
-    }
-}
-
 #[derive(Component)]
 // #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct Weapon;

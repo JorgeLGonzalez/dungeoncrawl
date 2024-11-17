@@ -1,7 +1,10 @@
 use crate::prelude::*;
 
-pub fn random_move(mut movers: Query<&mut PointC, With<MovingRandomly>>, map: Res<Map>) {
-    movers.iter_mut().for_each(|mut pos| {
+pub fn random_move(
+    mut movers: Query<(Entity, &PointC), With<MovingRandomly>>,
+    mut move_events: EventWriter<WantsToMove>,
+) {
+    movers.iter_mut().for_each(|(mover, pos)| {
         let mut rng = RandomNumberGenerator::new();
         let delta = match rng.range(0, 4) {
             0 => Point::new(-1, 0),
@@ -11,9 +14,7 @@ pub fn random_move(mut movers: Query<&mut PointC, With<MovingRandomly>>, map: Re
         };
 
         let destination = pos.0 + delta;
-        if map.can_enter_tile(destination) {
-            pos.0 = destination;
-        }
+        move_events.send(WantsToMove::new(mover, destination));
     });
 }
 
