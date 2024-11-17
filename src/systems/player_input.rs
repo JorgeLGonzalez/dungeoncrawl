@@ -6,31 +6,50 @@ pub fn player_input(
     (map, key, mut camera): (Res<Map>, Option<Res<VirtualKeyCode>>, ResMut<Camera>),
     mut commands: Commands,
 ) {
-    if let Ok(mut pos) = player_query.get_single_mut() {
-        let helper = PlayerActionHelper::new(key, pos.0);
+    if let Some(key) = key.as_deref() {
+        let delta = match key {
+            VirtualKeyCode::Left => Point::new(-1, 0),
+            VirtualKeyCode::Right => Point::new(1, 0),
+            VirtualKeyCode::Up => Point::new(0, -1),
+            VirtualKeyCode::Down => Point::new(0, 1),
+            _ => Point::zero(),
+        };
 
-        // if let Some(action) = helper.determine_action(ecs) {
-        //     match action {
-        //         PlayerAction::ActivateItem(a) => {
-        //             // commands.extend(a);
-        //         }
-        //         PlayerAction::Attack(a) => {
-        //             // commands.extend(a);
-        //         }
-        //         PlayerAction::GetMagicItem => {}
-        //         // PlayerAction::GetMagicItem => helper.pick_up_item(ecs, commands),
-        //         PlayerAction::Heal => (), // no longer in use
-        //         // PlayerAction::Heal => helper.heal(ecs), // no longer in use
-        //         PlayerAction::Move(m) => {}
-        //         PlayerAction::ShowPlayerPosition => println!(">>>Player at {:?}", helper.pos),
-        //         PlayerAction::Wait => (),
-        //     };
-
-        // *turn_state = TurnState::PlayerTurn;
-
-        // };
-        commands.remove_resource::<VirtualKeyCode>();
+        if delta.x != 0 || delta.y != 0 {
+            let mut pos = player_query.single_mut();
+            let destination = pos.0 + delta;
+            if map.can_enter_tile(destination) {
+                pos.0 = destination;
+                camera.on_player_move(destination);
+            }
+        }
     }
+    // if let Ok(mut pos) = player_query.get_single_mut() {
+    //     let helper = PlayerActionHelper::new(key, pos.0);
+
+    // if let Some(action) = helper.determine_action(ecs) {
+    //     match action {
+    //         PlayerAction::ActivateItem(a) => {
+    //             // commands.extend(a);
+    //         }
+    //         PlayerAction::Attack(a) => {
+    //             // commands.extend(a);
+    //         }
+    //         PlayerAction::GetMagicItem => {}
+    //         // PlayerAction::GetMagicItem => helper.pick_up_item(ecs, commands),
+    //         PlayerAction::Heal => (), // no longer in use
+    //         // PlayerAction::Heal => helper.heal(ecs), // no longer in use
+    //         PlayerAction::Move(m) => {}
+    //         PlayerAction::ShowPlayerPosition => println!(">>>Player at {:?}", helper.pos),
+    //         PlayerAction::Wait => (),
+    //     };
+
+    // *turn_state = TurnState::PlayerTurn;
+
+    // };
+    // }
+
+    commands.remove_resource::<VirtualKeyCode>();
 }
 
 /*
