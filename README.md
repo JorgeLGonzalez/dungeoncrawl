@@ -6,6 +6,12 @@ See https://opengameart.org/ for more game art.
 
 Ported to Bevy based on [Learn Bevy's ECS by ripping off someone else's project](https://saveriomiroddi.github.io/learn_bevy_ecs_by_ripping_off/introduction.html)
 
+`TODO`: The port mini book highlights the new Bevy concepts, but does not walk through all the changes. Therefore need to:
+
+1. Check out https://github.com/64kramsystem/learn_bevy_ecs_by_ripping_off-code/tree/master/port/15_Loot_02_better_combat/src to see all the other changes
+2. Bring back all the commented out features
+3. Consider further refactoring
+
 See [Run Your Rust Games in a Browser](https://hands-on-rust.com/2021/11/06/run-your-rust-games-in-a-browser-hands-on-rust-bonus-content/)
 
 ## Issue: periphery walls
