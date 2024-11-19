@@ -17,7 +17,7 @@ impl Templates {
 
     pub fn spawn_entities(
         &self,
-        ecs: &mut World,
+        world: &mut World,
         rng: &mut RandomNumberGenerator,
         level: usize,
         spawn_points: &[Point],
@@ -32,13 +32,11 @@ impl Templates {
                 }
             });
 
-        // let mut commands = CommandBuffer::new(ecs);
         spawn_points.iter().for_each(|pt| {
             if let Some(entity) = rng.random_slice_entry(&available_entities) {
-                entity.spawn_entity(pt, ecs);
+                let mut world_spawner = world.spawn();
+                entity.spawn_entity(pt, &mut world_spawner);
             }
         });
-
-        // commands.flush(ecs);
     }
 }

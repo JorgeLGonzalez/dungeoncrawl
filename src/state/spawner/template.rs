@@ -16,8 +16,7 @@ pub struct Template {
 }
 
 impl Template {
-    pub fn spawn_entity(&self, pt: &Point, world: &mut World) {
-        let mut world_spawner = world.spawn();
+    pub fn spawn_entity(&self, pt: &Point, world_spawner: &mut EntityMut) {
         let entity = world_spawner.insert_bundle((
             PointC(pt.clone()),
             Render::new(
