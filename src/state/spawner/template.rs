@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use bevy::ecs::world::EntityMut;
 use legion::systems::CommandBuffer;
 use serde::Deserialize;
 use std::collections::HashSet;
@@ -17,32 +18,18 @@ pub struct Template {
 
 impl Template {
     pub fn spawn_entity(&self, pt: &Point, world: &mut World) {
-        if self.entity_type == EntityType::Enemy {
-            world.spawn().insert_bundle((
-                PointC(pt.clone()),
-                Render::new(
-                    ColorPair::new(WHITE, BLACK),
-                    to_cp437(self.glyph),
-                    determine_render_order(&self.entity_type),
-                ),
-                Name(self.name.clone()),
-                Enemy,
-                MovingRandomly,
-            ));
-        } else {
-            world.spawn().insert_bundle((
-                PointC(pt.clone()),
-                Render::new(
-                    ColorPair::new(WHITE, BLACK),
-                    to_cp437(self.glyph),
-                    determine_render_order(&self.entity_type),
-                ),
-                Name(self.name.clone()),
-                Item,
-            ));
-        }
-        // let entity = self.create_entity(pt, commands);
-        // self.add_main_components(entity, commands);
+        let mut world_spawner = world.spawn();
+        let entity = world_spawner.insert_bundle((
+            PointC(pt.clone()),
+            Render::new(
+                ColorPair::new(WHITE, BLACK),
+                to_cp437(self.glyph),
+                determine_render_order(&self.entity_type),
+            ),
+            Name(self.name.clone()),
+        ));
+
+        self.add_main_components(entity);
         // self.add_effects(entity, commands);
         // self.add_damage(entity, commands);
     }
@@ -65,34 +52,23 @@ impl Template {
         }
     }
 
-    fn add_main_components(&self, entity: Entity, commands: &mut CommandBuffer) {
+    fn add_main_components(&self, entity: &mut EntityMut) {
         match self.entity_type {
             EntityType::Enemy => {
-                // commands.add_component(entity, Enemy);
-                // commands.add_component(entity, FieldOfView::new(6));
-                // commands.add_component(entity, ChasingPlayer);
-                // commands.add_component(entity, Health::new(self.hp.unwrap(), self.hp.unwrap()));
+                entity
+                    .insert(Enemy)
+                    .insert(FieldOfView::new(6))
+                    .insert(ChasingPlayer)
+                    .insert(Health::new(self.hp.unwrap(), self.hp.unwrap()));
             }
             EntityType::Item => {
-                // commands.add_component(entity, Item);
-                // if self.base_damage.is_some() {
-                //     commands.add_component(entity, Weapon);
-                // }
+                entity.insert(Item);
+                if self.base_damage.is_some() {
+                    entity.insert(Weapon);
+                }
             }
         }
     }
-
-    // fn create_entity(&self, pt: &Point, commands: &mut CommandBuffer) -> Entity {
-    //     commands.push((
-    //         pt.clone(),
-    //         Render::new(
-    //             ColorPair::new(WHITE, BLACK),
-    //             to_cp437(self.glyph),
-    //             determine_render_order(&self.entity_type),
-    //         ),
-    //         Name(self.name.clone()),
-    //     ))
-    // }
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
