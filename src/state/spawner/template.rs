@@ -1,6 +1,5 @@
 use crate::prelude::*;
 use bevy::ecs::world::EntityMut;
-use legion::systems::CommandBuffer;
 use serde::Deserialize;
 use std::collections::HashSet;
 
@@ -30,23 +29,27 @@ impl Template {
         ));
 
         self.add_main_components(entity);
-        // self.add_effects(entity, commands);
-        // self.add_damage(entity, commands);
+        self.add_effects(entity);
+        self.add_damage(entity);
     }
 
-    fn add_damage(&self, entity: Entity, commands: &mut CommandBuffer) {
+    fn add_damage(&self, entity: &mut EntityMut) {
         if let Some(damage) = &self.base_damage {
-            // commands.add_component(entity, Damage(*damage));
+            entity.insert(Damage(*damage));
         }
     }
 
-    fn add_effects(&self, entity: Entity, commands: &mut CommandBuffer) {
+    fn add_effects(&self, entity: &mut EntityMut) {
         if let Some(effects) = &self.provides {
             effects
                 .iter()
                 .for_each(|(provides, n)| match provides.as_str() {
-                    // "Healing" => commands.add_component(entity, ProvidesHealing::new(*n)),
-                    // "MagicMap" => commands.add_component(entity, ProvidesDungeonMap),
+                    "Healing" => {
+                        entity.insert(ProvidesHealing::new(*n));
+                    }
+                    "MagicMap" => {
+                        entity.insert(ProvidesDungeonMap);
+                    }
                     _ => println!("Warning: we don't know how to provide {provides}"),
                 });
         }
