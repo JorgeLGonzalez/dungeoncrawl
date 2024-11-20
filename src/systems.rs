@@ -20,7 +20,8 @@ pub fn build_system_sets(app: &mut App) {
     app.add_system_set(
         SystemSet::new()
             .with_system(map_render::map_render)
-            .with_system(entity_render::entity_render),
+            .with_system(entity_render::entity_render)
+            .with_system(hud::hud),
     );
 
     app.add_system(player_input::player_input.run_if_resource_equals(TurnState::AwaitingInput));

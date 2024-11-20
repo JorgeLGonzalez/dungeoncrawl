@@ -20,8 +20,6 @@ mod prelude {
     pub use crate::turn_state::*;
     pub use bevy::prelude::*;
     pub use iyes_loopless::prelude::*;
-    // pub use legion::world::SubWorld;
-    // pub use legion::*;
 
     pub const DISPLAY_HEIGHT: i32 = SCREEN_HEIGHT / 2;
     pub const DISPLAY_WIDTH: i32 = SCREEN_WIDTH / 2;
