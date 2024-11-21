@@ -17,7 +17,7 @@ pub fn tooltip(
         .iter()
         .filter(|(pos, ..)| pos.0 == map_pos)
         .for_each(|(_, name, health)| {
-            draw_batch.print(screen_pos, display(&name.0, health));
+            draw_batch.print(screen_pos, display(name, health));
         });
 
     draw_batch.submit(10100).expect("Batch error");
@@ -29,9 +29,9 @@ fn determine_map_pos(mouse_pos: Res<Point>, camera: Res<Camera>) -> Point {
     *mouse_pos + offset
 }
 
-fn display(name: &str, health: Option<&Health>) -> String {
+fn display(name: &NameComponent, health: Option<&Health>) -> String {
     health.map_or_else(
-        || name.to_string(),
-        |h| format!("{}: {} hp", name, h.current),
+        || name.0.to_string(),
+        |h| format!("{}: {} hp", name.0, h.current),
     )
 }
