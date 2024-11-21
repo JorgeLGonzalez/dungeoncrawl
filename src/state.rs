@@ -108,8 +108,8 @@ impl GameState for State {
             self.ecs.world.remove_resource::<VirtualKeyCode>();
         }
 
-        // ctx.set_active_console(ConsoleLayer::Map.into());
-        // self.resources.insert(Point::from_tuple(ctx.mouse_pos()));
+        ctx.set_active_console(ConsoleLayer::Map.into());
+        self.ecs.insert_resource(Point::from_tuple(ctx.mouse_pos()));
 
         // let current_state = self.resources.get::<TurnState>().unwrap().clone();
         // match current_state {
