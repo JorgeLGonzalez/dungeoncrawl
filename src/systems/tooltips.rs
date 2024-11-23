@@ -1,6 +1,5 @@
 use crate::components::Name as NameComponent;
 use crate::prelude::*;
-// use super::helpers::player_fov;
 
 pub fn tooltip(
     query: Query<(&PointC, &NameComponent, Option<&Health>)>,

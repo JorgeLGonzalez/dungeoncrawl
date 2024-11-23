@@ -1,10 +1,104 @@
-// use super::get_player_pos;
-// use crate::prelude::*;
+use crate::prelude::*;
 
-// pub enum ChaseAction {
-//     Attack(WantsToAttack),
-//     Move(WantsToMove),
-// }
+pub enum ChaseAction {
+    Attack(WantsToAttack),
+    Move(WantsToMove),
+}
+
+pub struct ChaseActionDeterminer<'a> {
+    dijkstra_map: DijkstraMap,
+    map: &'a Map,
+    player: PlayerInfo,
+    positions: Vec<PotentialVictim>,
+}
+
+impl<'a> ChaseActionDeterminer<'a> {
+    pub fn new(
+        player_query: Query<(Entity, &PointC), With<Player>>,
+        positions: Query<(Entity, &PointC), With<Health>>,
+        map: &'a Map,
+    ) -> Self {
+        let player = PlayerInfo::from_query(player_query);
+
+        Self {
+            dijkstra_map: create_dijkstra_map(player.pos, map),
+            map,
+            player,
+            positions: positions.iter().map(PotentialVictim::from_tuple).collect(),
+        }
+    }
+
+    pub fn determine(
+        &self,
+        mover: Entity,
+        mover_pos: &PointC,
+        fov: &FieldOfView,
+    ) -> Option<ChaseAction> {
+        if !fov.visible_tiles.contains(&self.player.pos) {
+            return None;
+        }
+
+        let idx = map_idx(mover_pos.0.x, mover_pos.0.y);
+        if let Some(destination_idx) =
+            DijkstraMap::find_lowest_exit(&self.dijkstra_map, idx, self.map)
+        {
+            let distance = DistanceAlg::Pythagoras.distance2d(mover_pos.0, self.player.pos);
+            // see p 315 for rationale for 1.2
+            let destination = if distance > 1.2 {
+                self.map.index_to_point2d(destination_idx)
+            } else {
+                self.player.pos
+            };
+
+            self.positions
+                .iter()
+                .find(|p| p.pos == destination && p.victim == self.player.entity)
+                .map_or_else(
+                    || Some(ChaseAction::Move(WantsToMove::new(mover, destination))),
+                    |v| Some(ChaseAction::Attack(WantsToAttack::new(mover, v.victim))),
+                )
+        } else {
+            None
+        }
+    }
+}
+
+struct PlayerInfo {
+    entity: Entity,
+    pos: Point,
+}
+
+impl PlayerInfo {
+    fn from_query(query: Query<(Entity, &PointC), With<Player>>) -> Self {
+        let (entity, pos_c) = query.single();
+
+        Self {
+            entity,
+            pos: pos_c.0,
+        }
+    }
+}
+
+struct PotentialVictim {
+    victim: Entity,
+    pos: Point,
+}
+
+impl PotentialVictim {
+    fn from_tuple(t: (Entity, &PointC)) -> Self {
+        Self {
+            victim: t.0,
+            pos: t.1 .0,
+        }
+    }
+}
+
+fn create_dijkstra_map(player_pos: Point, map: &Map) -> DijkstraMap {
+    let player_idx = map_idx(player_pos.x, player_pos.y);
+    let search_targets = vec![player_idx];
+
+    DijkstraMap::new(SCREEN_WIDTH, SCREEN_HEIGHT, &search_targets, map, 1024.0)
+}
 
 // pub struct ChaseActionDeterminer<'a> {
 //     dijkstra_map: DijkstraMap,
@@ -114,12 +208,6 @@
 
 //         will_be_occupied
 //     }
-// }
-
-// fn create_dijkstra_map(player_pos: Point, map: &Map) -> DijkstraMap {
-//     let player_idx = map_idx(player_pos.x, player_pos.y);
-//     let search_targets = vec![player_idx];
-//     DijkstraMap::new(SCREEN_WIDTH, SCREEN_HEIGHT, &search_targets, map, 1024.0)
 // }
 
 // fn find_player(occupants: &[Occupant]) -> Option<Entity> {

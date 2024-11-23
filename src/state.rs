@@ -123,22 +123,6 @@ impl GameState for State {
         ctx.set_active_console(ConsoleLayer::Map.into());
         self.ecs.insert_resource(Point::from_tuple(ctx.mouse_pos()));
 
-        // let current_state = self.resources.get::<TurnState>().unwrap().clone();
-        // match current_state {
-        //     TurnState::AwaitingInput => self
-        //         .input_systems
-        //         .execute(&mut self.ecs, &mut self.resources),
-        //     TurnState::GameOver => self.game_over(ctx),
-        //     TurnState::MonsterTurn => self
-        //         .monster_systems
-        //         .execute(&mut self.ecs, &mut self.resources),
-        //     TurnState::NextLevel => self.advance_level(),
-        //     TurnState::PlayerTurn => self
-        //         .player_systems
-        //         .execute(&mut self.ecs, &mut self.resources),
-        //     TurnState::Victory => self.victory(ctx),
-        // }
-
         self.ecs.update();
 
         render_draw_buffer(ctx).expect("Render error");
