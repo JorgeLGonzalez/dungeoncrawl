@@ -1,30 +1,19 @@
-// use super::helpers::Damager;
-// use crate::prelude::*;
+use super::helpers::Damager;
+use crate::prelude::*;
 
-// #[system]
-// #[read_component(Carried)]
-// #[read_component(Damage)]
-// #[read_component(Player)]
-// #[read_component(WantsToAttack)]
-// #[write_component(Health)]
-// pub fn combat(ecs: &mut SubWorld, commands: &mut CommandBuffer) {
-//     gather_victims(ecs)
-//         .iter()
-//         .for_each(|(message, attacker, victim)| {
-//             let mut damager = Damager::new(*attacker, *victim, ecs);
-//             damager.attack(ecs);
-
-//             if damager.should_terminate() {
-//                 damager.terminate(commands);
-//             }
-
-//             commands.remove(*message);
-//         });
-// }
-
-// fn gather_victims(ecs: &SubWorld) -> Vec<(Entity, Entity, Entity)> {
-//     <(Entity, &WantsToAttack)>::query()
-//         .iter(ecs)
-//         .map(|(entity, attack)| (*entity, attack.attacker, attack.victim))
-//         .collect()
-// }
+pub fn combat(
+    mut attack_events: EventReader<WantsToAttack>,
+    mut health_query: Query<&mut Health>,
+    mut commands: Commands,
+    player_query: Query<&Player>,
+    base_damage_query: Query<&Damage>,
+    weapon_damage_query: Query<(&Carried, &Damage)>,
+) {
+    attack_events.iter().for_each(|attack| {
+        Damager::new(attack, &player_query)
+            .base_damage(&base_damage_query)
+            .weapon_damage(&weapon_damage_query)
+            .adjust_health(&mut health_query)
+            .maybe_despawn(&mut commands);
+    });
+}

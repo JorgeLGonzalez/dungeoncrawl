@@ -11,6 +11,7 @@ pub enum GameStage {
     MonsterFov,
     MovePlayer,
     MoveMonsters,
+    PlayerCombat,
     PlayerFov,
 }
 

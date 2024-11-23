@@ -28,6 +28,11 @@ impl State {
 
         ecs.add_stage_after(
             CoreStage::Update,
+            GameStage::PlayerCombat,
+            SystemStage::parallel(),
+        )
+        .add_stage_after(
+            GameStage::PlayerCombat,
             GameStage::MovePlayer,
             SystemStage::parallel(),
         )
@@ -38,16 +43,16 @@ impl State {
         )
         .add_stage_after(
             GameStage::PlayerFov,
-            GameStage::Collisions,
-            SystemStage::parallel(),
-        )
-        .add_stage_after(
-            GameStage::Collisions,
             GameStage::GenerateMonsterMoves,
             SystemStage::parallel(),
         )
         .add_stage_after(
             GameStage::GenerateMonsterMoves,
+            GameStage::MonsterCombat,
+            SystemStage::parallel(),
+        )
+        .add_stage_after(
+            GameStage::MonsterCombat,
             GameStage::MoveMonsters,
             SystemStage::parallel(),
         )

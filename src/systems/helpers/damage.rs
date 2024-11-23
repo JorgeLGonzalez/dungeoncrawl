@@ -1,74 +1,81 @@
-// use crate::prelude::*;
+use crate::prelude::*;
 
-// pub struct Damager {
-//     attacker: Entity,
-//     killed: bool,
-//     player_victim: bool,
-//     victim: Entity,
-// }
+pub struct Damager {
+    attacker: Entity,
+    damage: i32,
+    killed: bool,
+    player_victim: bool,
+    victim: Entity,
+}
 
-// impl Damager {
-//     pub fn new(attacker: Entity, victim: Entity, ecs: &SubWorld) -> Self {
-//         Self {
-//             attacker,
-//             killed: false,
-//             player_victim: is_player(victim, ecs),
-//             victim,
-//         }
-//     }
+impl Damager {
+    pub fn new(attack: &WantsToAttack, player_query: &Query<&Player>) -> Self {
+        Self {
+            attacker: attack.attacker,
+            damage: 0,
+            killed: false,
+            player_victim: player_query.get(attack.victim).is_ok(),
+            victim: attack.victim,
+        }
+    }
 
-//     pub fn attack(&mut self, ecs: &mut SubWorld) {
-//         let damage = self.base_damage(ecs) + self.weapon_damage(ecs);
+    pub fn adjust_health(mut self, health_query: &mut Query<&mut Health>) -> Self {
+        if let Ok(mut health) = health_query.get_mut(self.victim) {
+            health.current -= self.damage;
+            self.killed = health.current < 1;
+            self.log(health.current);
+        }
 
-//         let mut victim_entity = ecs.entry_mut(self.victim).unwrap();
-//         let health = victim_entity
-//             .get_component_mut::<Health>()
-//             .expect("*** ERROR: attacked victim lacks Health!");
+        self
+    }
 
-//         println!("Health before attack: {}", health.current);
-//         health.current -= damage;
-//         println!("Health after attack: {}", health.current);
+    pub fn base_damage(self, base_damage_query: &Query<&Damage>) -> Self {
+        let damage = base_damage_query
+            .get(self.victim)
+            .map_or(0, |damage| damage.0);
 
-//         self.killed = health.current < 1
-//     }
+        Self {
+            damage: self.damage + damage,
+            ..self
+        }
+    }
 
-//     pub fn should_terminate(&self) -> bool {
-//         self.killed && !self.player_victim
-//     }
+    pub fn maybe_despawn(&self, commands: &mut Commands) {
+        if self.killed && !self.player_victim {
+            commands.entity(self.victim).despawn();
+        }
+    }
 
-//     pub fn terminate(&self, commands: &mut CommandBuffer) {
-//         assert!(self.killed);
-//         assert!(!self.player_victim);
+    pub fn weapon_damage(self, weapon_damage_query: &Query<(&Carried, &Damage)>) -> Self {
+        let damage: i32 = weapon_damage_query
+            .iter()
+            .filter_map(|(carried, damage)| (carried.0 == self.attacker).then_some(damage.0))
+            .sum();
 
-//         println!("\tEnemy terminated!");
+        Self {
+            damage: self.damage + damage,
+            ..self
+        }
+    }
 
-//         commands.remove(self.victim);
-//     }
+    fn log(&self, health: i32) {
+        let attacker = if self.player_victim {
+            "Monster"
+        } else {
+            "Player"
+        };
+        let damage = self.damage;
+        let victim = if self.player_victim {
+            "Player"
+        } else {
+            "Monster"
+        };
+        let status = if self.killed {
+            "dead".to_string()
+        } else {
+            format!("with {health} health points")
+        };
 
-//     fn base_damage(&self, ecs: &SubWorld) -> i32 {
-//         if let Ok(attack) = ecs.entry_ref(self.attacker) {
-//             if let Ok(damage) = attack.get_component::<Damage>() {
-//                 damage.0
-//             } else {
-//                 0
-//             }
-//         } else {
-//             0
-//         }
-//     }
-
-//     fn weapon_damage(&self, ecs: &SubWorld) -> i32 {
-//         <(&Carried, &Damage)>::query()
-//             .iter(ecs)
-//             .filter(|(carried, _)| carried.0 == self.attacker)
-//             .map(|(_, damage)| damage.0)
-//             .sum()
-//     }
-// }
-
-// fn is_player(victim: Entity, ecs: &SubWorld) -> bool {
-//     ecs.entry_ref(victim)
-//         .unwrap()
-//         .get_component::<Player>()
-//         .is_ok()
-// }
+        println!("{attacker} inflicts {damage} points of damage leaving {victim} {status}",)
+    }
+}

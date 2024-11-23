@@ -38,7 +38,14 @@ pub fn build_system_sets(app: &mut App) {
 
     app.add_system(player_input::player_input.run_if_resource_equals(TurnState::AwaitingInput));
 
-    // TODO: player combat stage
+    app.add_system_set_to_stage(
+        GameStage::PlayerCombat,
+        ConditionSet::new()
+            .run_if_resource_equals(TurnState::PlayerTurn)
+            // .with_system(use_items::use_items)
+            .with_system(combat::combat)
+            .into(),
+    );
 
     app.add_system_set_to_stage(
         GameStage::MovePlayer,
@@ -58,15 +65,15 @@ pub fn build_system_sets(app: &mut App) {
     );
 
     // TODO remove
-    app.add_system_set_to_stage(
-        GameStage::Collisions,
-        ConditionSet::new()
-            .run_if_resource_equals(TurnState::PlayerTurn)
-            .with_system(collisions::collisions)
-            .with_system(fov::fov)
-            .with_system(end_turn::end_turn)
-            .into(),
-    );
+    // app.add_system_set_to_stage(
+    //     GameStage::Collisions,
+    //     ConditionSet::new()
+    //         .run_if_resource_equals(TurnState::PlayerTurn)
+    //         .with_system(collisions::collisions)
+    //         .with_system(fov::fov)
+    //         .with_system(end_turn::end_turn)
+    //         .into(),
+    // );
 
     app.add_system_set_to_stage(
         GameStage::GenerateMonsterMoves,
@@ -77,7 +84,13 @@ pub fn build_system_sets(app: &mut App) {
             .into(),
     );
 
-    // TODO: player combat stage
+    app.add_system_set_to_stage(
+        GameStage::MonsterCombat,
+        ConditionSet::new()
+            .run_if_resource_equals(TurnState::MonsterTurn)
+            .with_system(combat::combat)
+            .into(),
+    );
 
     app.add_system_set_to_stage(
         GameStage::MoveMonsters,
