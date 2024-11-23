@@ -1,17 +1,21 @@
 use crate::prelude::*;
 
-pub fn entity_render(query: Query<(&PointC, &Render)>, camera: Res<Camera>) {
-    // let entities = gather_entities_in_render_order(ecs, camera);
-    render(query, camera);
-}
+pub fn entity_render(
+    query: Query<(&PointC, &Render)>,
+    player_fov: Query<&FieldOfView, With<Player>>,
+    camera: Res<Camera>,
+) {
+    let player_fov = player_fov.single();
 
-fn render(query: Query<(&PointC, &Render)>, camera: Res<Camera>) {
     let mut draw_batch = DrawBatch::new();
     draw_batch.target(ConsoleLayer::Entity.into());
 
     let offset = Point::new(camera.left_x, camera.top_y);
 
-    for (pos, render) in query.iter() {
+    for (pos, render) in query
+        .iter()
+        .filter(|(pos, _)| player_fov.visible_tiles.contains(&pos.0))
+    {
         draw_batch.set(pos.0 - offset, render.color, render.glyph);
     }
 

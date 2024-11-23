@@ -11,10 +11,11 @@ Ported to Bevy based on [Learn Bevy's ECS by ripping off someone else's project]
 - [x] hud
 - [x] tooltips
 - [x] chasing
-- [ ] fov
-  - [ ] map_render missing pieces (fov)
-  - [ ] movement w/ fov
-  - [ ] tooltips limit to player fov
+- [x] fov
+  - [x] map_render missing pieces (fov)
+  - [x] movement w/ fov
+  - [x] tooltips limit to player fov
+  - [x] entity_render based on fov
 - [ ] combat
 - [ ] refactor chasing
 - [ ] end_turn
