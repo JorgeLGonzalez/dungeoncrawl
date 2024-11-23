@@ -25,7 +25,6 @@ Ported to Bevy based on [Learn Bevy's ECS by ripping off someone else's project]
 - [ ] end_screen
 - [ ] level_advancer
 - [ ] themes
-- [ ] entity_render ensure proper ordering etc
 - [ ] random_move missing stuff?
 - [ ] cleanup components
 - [ ] cleanup systems
