@@ -1,4 +1,3 @@
-use super::helpers::player_fov;
 use crate::prelude::*;
 
 pub fn entity_render(query: Query<(&PointC, &Render)>, camera: Res<Camera>) {
