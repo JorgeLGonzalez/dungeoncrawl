@@ -5,11 +5,11 @@ pub fn chasing(
     mut move_events: EventWriter<WantsToMove>,
     mut attack_events: EventWriter<WantsToAttack>,
     movers: Query<(Entity, &PointC, &FieldOfView), With<ChasingPlayer>>,
-    positions: Query<(Entity, &PointC), With<Health>>,
+    positions: Query<(Entity, &PointC), With<Enemy>>,
     player: Query<(Entity, &PointC), With<Player>>,
     map: Res<Map>,
 ) {
-    let determiner = ChaseActionDeterminer::new(player, positions, map.as_ref());
+    let mut determiner = ChaseActionDeterminer::new(player, positions, map.as_ref());
 
     movers
         .iter()

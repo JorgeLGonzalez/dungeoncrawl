@@ -16,8 +16,8 @@ Ported to Bevy based on [Learn Bevy's ECS by ripping off someone else's project]
   - [x] movement w/ fov
   - [x] tooltips limit to player fov
   - [x] entity_render based on fov
+- [x] movement: prevent enemies stepping on each other
 - [ ] combat
-- [ ] refactor chasing
 - [ ] end_turn
 - [ ] use_items
   - [ ] display inventory in hud system and check hud system in port code
