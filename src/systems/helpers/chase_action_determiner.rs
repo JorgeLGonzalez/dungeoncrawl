@@ -38,28 +38,30 @@ impl<'a> ChaseActionDeterminer<'a> {
             return None;
         }
 
-        let idx = map_idx(mover_pos.0.x, mover_pos.0.y);
-        if let Some(destination_idx) =
-            DijkstraMap::find_lowest_exit(&self.dijkstra_map, idx, self.map)
-        {
-            let distance = DistanceAlg::Pythagoras.distance2d(mover_pos.0, self.player.pos);
-            // see p 315 for rationale for 1.2
-            let destination = if distance > 1.2 {
-                self.map.index_to_point2d(destination_idx)
-            } else {
-                self.player.pos
-            };
-
+        self.determine_destination(mover_pos.0).map(|destination| {
             self.positions
                 .iter()
                 .find(|p| p.pos == destination && p.victim == self.player.entity)
                 .map_or_else(
-                    || Some(ChaseAction::Move(WantsToMove::new(mover, destination))),
-                    |v| Some(ChaseAction::Attack(WantsToAttack::new(mover, v.victim))),
+                    || ChaseAction::Move(WantsToMove::new(mover, destination)),
+                    |v| ChaseAction::Attack(WantsToAttack::new(mover, v.victim)),
                 )
-        } else {
-            None
-        }
+        })
+    }
+
+    /// Move towards nearby player, or nearest exit if player is not nearby
+    fn determine_destination(&self, mover_pos: Point) -> Option<Point> {
+        let idx = map_idx(mover_pos.x, mover_pos.y);
+
+        DijkstraMap::find_lowest_exit(&self.dijkstra_map, idx, self.map).map(|destination_idx| {
+            let distance = DistanceAlg::Pythagoras.distance2d(mover_pos, self.player.pos);
+            // see p 315 for rationale for 1.2
+            if distance > 1.2 {
+                self.map.index_to_point2d(destination_idx)
+            } else {
+                self.player.pos
+            }
+        })
     }
 }
 
