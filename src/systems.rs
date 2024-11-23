@@ -49,6 +49,7 @@ pub fn build_system_sets(app: &mut App) {
         ConditionSet::new()
             .run_if_resource_equals(TurnState::MonsterTurn)
             .with_system(random_move::random_move)
+            .with_system(chasing::chasing)
             .into(),
     );
 

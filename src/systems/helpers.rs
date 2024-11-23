@@ -1,7 +1,6 @@
 mod activation_message;
 mod chase_action_determiner;
 mod damage;
-mod get_player_pos;
 mod player_action;
 mod player_fov;
 

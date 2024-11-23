@@ -13,7 +13,7 @@ impl WantsToAttack {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct WantsToMove {
     pub destination: Point,
     pub entity: Entity,

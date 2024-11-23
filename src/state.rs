@@ -19,10 +19,10 @@ impl State {
         // This is not a strict-ECS approach (a system would), but we mimic the source project design.
         Spawner::spawn(&mut ecs.world, &mut rng, &mut mb, 0);
 
-        ecs.insert_resource(mb.map);
-        ecs.insert_resource(Camera::new(mb.player_start));
+        ecs.insert_resource(mb.map)
+            .insert_resource(Camera::new(mb.player_start));
 
-        ecs.add_event::<WantsToMove>();
+        ecs.add_event::<WantsToAttack>().add_event::<WantsToMove>();
 
         ecs.add_stage_after(
             CoreStage::Update,
