@@ -4,18 +4,20 @@ use crate::prelude::*;
 
 pub fn tooltip(
     query: Query<(&PointC, &NameComponent, Option<&Health>)>,
+    player_fov: Query<&FieldOfView, With<Player>>,
     mouse_pos: Res<Point>,
     camera: Res<Camera>,
 ) {
+    let player_fov = player_fov.single();
+
     let mut draw_batch = DrawBatch::new();
     draw_batch.target(ConsoleLayer::Hud.into());
 
     let screen_pos = *mouse_pos * 4;
     let map_pos = determine_map_pos(mouse_pos, camera);
-    // let player_fov = player_fov(ecs);
     query
         .iter()
-        .filter(|(pos, ..)| pos.0 == map_pos)
+        .filter(|(pos, ..)| pos.0 == map_pos && player_fov.visible_tiles.contains(&pos.0))
         .for_each(|(_, name, health)| {
             draw_batch.print(screen_pos, display(name, health));
         });
