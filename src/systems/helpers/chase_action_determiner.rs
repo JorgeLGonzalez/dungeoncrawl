@@ -5,11 +5,21 @@ pub enum ChaseAction {
     Move(WantsToMove),
 }
 
+impl ChaseAction {
+    fn new_attack(mover: Entity, victim: &PotentialVictim) -> Self {
+        Self::Attack(WantsToAttack::new(mover, victim.victim))
+    }
+
+    fn new_move(mover: Entity, destination: Point) -> Self {
+        Self::Move(WantsToMove::new(mover, destination))
+    }
+}
+
 pub struct ChaseActionDeterminer<'a> {
     dijkstra_map: DijkstraMap,
     map: &'a Map,
     player: PlayerInfo,
-    positions: Vec<PotentialVictim>,
+    potential_victims: Vec<PotentialVictim>,
 }
 
 impl<'a> ChaseActionDeterminer<'a> {
@@ -24,7 +34,7 @@ impl<'a> ChaseActionDeterminer<'a> {
             dijkstra_map: create_dijkstra_map(player.pos, map),
             map,
             player,
-            positions: positions.iter().map(PotentialVictim::from_tuple).collect(),
+            potential_victims: positions.iter().map(PotentialVictim::from_tuple).collect(),
         }
     }
 
@@ -39,12 +49,12 @@ impl<'a> ChaseActionDeterminer<'a> {
         }
 
         self.determine_destination(mover_pos.0).map(|destination| {
-            self.positions
+            self.potential_victims
                 .iter()
                 .find(|p| p.pos == destination && p.victim == self.player.entity)
                 .map_or_else(
-                    || ChaseAction::Move(WantsToMove::new(mover, destination)),
-                    |v| ChaseAction::Attack(WantsToAttack::new(mover, v.victim)),
+                    || ChaseAction::new_move(mover, destination),
+                    |victim| ChaseAction::new_attack(mover, victim),
                 )
         })
     }
