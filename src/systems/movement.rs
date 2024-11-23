@@ -3,8 +3,8 @@ use crate::prelude::*;
 pub fn movement(
     mut commands: Commands,
     mut move_events: EventReader<WantsToMove>,
-    query: Query<&Player>,
-    (map, mut camera): (Res<Map>, ResMut<Camera>),
+    query: Query<(Entity, &FieldOfView, Option<&Player>)>,
+    (mut map, mut camera): (ResMut<Map>, ResMut<Camera>),
 ) {
     for &WantsToMove {
         destination,
@@ -14,8 +14,14 @@ pub fn movement(
         if map.can_enter_tile(destination) {
             commands.entity(entity).insert(PointC(destination));
 
-            if query.get(entity).is_ok() {
-                camera.on_player_move(destination);
+            if let Ok((entity, fov, player)) = query.get(entity) {
+                commands.entity(entity).insert(fov.clone_dirty());
+                if player.is_some() {
+                    camera.on_player_move(destination);
+                    fov.visible_tiles.iter().for_each(|tile_pos| {
+                        map.revealed_tiles[map_idx(tile_pos.x, tile_pos.y)] = true;
+                    });
+                }
             }
         }
     }
