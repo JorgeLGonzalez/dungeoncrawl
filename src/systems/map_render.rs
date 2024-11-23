@@ -1,11 +1,11 @@
-use super::helpers::player_fov;
 use crate::prelude::*;
 
 pub fn map_render(
-    (map, camera): (Res<Map>, Res<Camera>), // #[resource] theme: &Box<dyn MapTheme>,
+    player_fov: Query<&FieldOfView, With<Player>>,
+    (map, camera): (Res<Map>, Res<Camera>),
+    // #[resource] theme: &Box<dyn MapTheme>,
 ) {
-    // let player_fov = player_fov(ecs);
-    let player_fov = FieldOfView::new(6);
+    let player_fov = player_fov.single();
 
     let mut draw_batch = DrawBatch::new();
     draw_batch.target(ConsoleLayer::Map.into());
@@ -16,8 +16,7 @@ pub fn map_render(
     for y in camera.top_y..=camera.bottom_y {
         for x in x_range.clone() {
             let pt = Point::new(x, y);
-            if map.in_bounds(pt) {
-                // if should_render(pt, player_fov, map) {
+            if should_render(pt, player_fov, map.as_ref()) {
                 draw_batch.set(
                     pt - camera_origin,
                     determine_color(&pt, &player_fov),
@@ -28,10 +27,6 @@ pub fn map_render(
     }
 
     draw_batch.submit(0).expect("Batch error");
-}
-
-fn determine_pos(absolute_pos: Point, camera: Res<Camera>) -> Point {
-    absolute_pos - Point::new(camera.left_x, camera.top_y)
 }
 
 fn determine_color(pt: &Point, fov: &FieldOfView) -> ColorPair {
