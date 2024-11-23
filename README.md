@@ -11,13 +11,12 @@ Ported to Bevy based on [Learn Bevy's ECS by ripping off someone else's project]
 - [x] hud
 - [x] tooltips
 - [x] chasing
-- [ ] movement
-- [ ] refactor chasing
-- [ ] combat
 - [ ] fov
   - [ ] map_render missing pieces (fov)
   - [ ] movement w/ fov
   - [ ] tooltips limit to player fov
+- [ ] combat
+- [ ] refactor chasing
 - [ ] end_turn
 - [ ] use_items
   - [ ] display inventory in hud system and check hud system in port code

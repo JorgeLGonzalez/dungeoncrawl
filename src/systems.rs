@@ -16,30 +16,54 @@ mod use_items;
 pub use crate::prelude::*;
 
 pub fn build_system_sets(app: &mut App) {
+    app.add_system_set(
+        ConditionSet::new()
+            .label(StateLabel::Fov)
+            .run_unless_resource_equals(TurnState::GameOver)
+            .with_system(fov::fov)
+            .into(),
+    );
+
     // rendering stage part of Update stage and both systems run in parallel
     app.add_system_set(
-        SystemSet::new()
+        ConditionSet::new()
+            .run_unless_resource_equals(TurnState::GameOver)
+            .after(StateLabel::Fov)
             .with_system(map_render::map_render)
             .with_system(entity_render::entity_render)
             .with_system(hud::hud)
-            .with_system(tooltips::tooltip),
+            .with_system(tooltips::tooltip)
+            .into(),
     );
 
     app.add_system(player_input::player_input.run_if_resource_equals(TurnState::AwaitingInput));
+
+    // TODO: player combat stage
 
     app.add_system_set_to_stage(
         GameStage::MovePlayer,
         ConditionSet::new()
             .run_if_resource_equals(TurnState::PlayerTurn)
             .with_system(movement::movement)
+            .with_system(end_turn::end_turn)
             .into(),
     );
 
+    app.add_system_set_to_stage(
+        GameStage::PlayerFov,
+        ConditionSet::new()
+            .run_if_resource_equals(TurnState::PlayerTurn)
+            .with_system(fov::fov)
+            .into(),
+    );
+
+    // TODO remove
     app.add_system_set_to_stage(
         GameStage::Collisions,
         ConditionSet::new()
             .run_if_resource_equals(TurnState::PlayerTurn)
             .with_system(collisions::collisions)
+            .with_system(fov::fov)
             .with_system(end_turn::end_turn)
             .into(),
     );
@@ -53,6 +77,8 @@ pub fn build_system_sets(app: &mut App) {
             .into(),
     );
 
+    // TODO: player combat stage
+
     app.add_system_set_to_stage(
         GameStage::MoveMonsters,
         ConditionSet::new()
@@ -61,6 +87,19 @@ pub fn build_system_sets(app: &mut App) {
             .with_system(end_turn::end_turn)
             .into(),
     );
+
+    app.add_system_set_to_stage(
+        GameStage::MonsterFov,
+        ConditionSet::new()
+            .run_if_resource_equals(TurnState::MonsterTurn)
+            .with_system(fov::fov)
+            .into(),
+    );
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq, SystemLabel)]
+enum StateLabel {
+    Fov,
 }
 
 /*

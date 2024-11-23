@@ -22,7 +22,9 @@ impl State {
         ecs.insert_resource(mb.map)
             .insert_resource(Camera::new(mb.player_start));
 
-        ecs.add_event::<WantsToAttack>().add_event::<WantsToMove>();
+        ecs.add_event::<ActivateItem>()
+            .add_event::<WantsToAttack>()
+            .add_event::<WantsToMove>();
 
         ecs.add_stage_after(
             CoreStage::Update,
@@ -31,6 +33,11 @@ impl State {
         )
         .add_stage_after(
             GameStage::MovePlayer,
+            GameStage::PlayerFov,
+            SystemStage::parallel(),
+        )
+        .add_stage_after(
+            GameStage::PlayerFov,
             GameStage::Collisions,
             SystemStage::parallel(),
         )
@@ -42,6 +49,11 @@ impl State {
         .add_stage_after(
             GameStage::GenerateMonsterMoves,
             GameStage::MoveMonsters,
+            SystemStage::parallel(),
+        )
+        .add_stage_after(
+            GameStage::MoveMonsters,
+            GameStage::MonsterFov,
             SystemStage::parallel(),
         );
 

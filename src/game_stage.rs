@@ -1,11 +1,17 @@
 use crate::prelude::*;
 
+// From our game design perspective, GameStage is a group of systems that require
+// the commands in the previous group to be flushed.
+// See systems.rs
 #[derive(Clone, Debug, Eq, Hash, PartialEq, StageLabel)]
 pub enum GameStage {
     Collisions,
     GenerateMonsterMoves,
+    MonsterCombat,
+    MonsterFov,
     MovePlayer,
     MoveMonsters,
+    PlayerFov,
 }
 
 /*
