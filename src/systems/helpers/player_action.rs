@@ -2,7 +2,7 @@ use crate::components::Name as NameComponent;
 use crate::prelude::*;
 
 pub mod prelude {
-    pub use super::CarriedWeaponsQuery;
+    pub use super::CarriedItemsQuery;
     pub use super::EnemiesQuery;
     pub use super::ItemsQuery;
     pub use super::PlayerAction;
@@ -10,8 +10,8 @@ pub mod prelude {
     pub use super::PlayerQuery;
 }
 
-pub type CarriedWeaponsQuery<'world, 'state, 'n, 'c> =
-    Query<'world, 'state, (Entity, &'n NameComponent, &'c Carried), With<Weapon>>;
+pub type CarriedItemsQuery<'world, 'state, 'n, 'c, 'wp> =
+    Query<'world, 'state, (Entity, &'n NameComponent, &'c Carried, Option<&'wp Weapon>)>;
 pub type EnemiesQuery<'w, 's, 'p> = Query<'w, 's, (Entity, &'p PointC), With<Enemy>>;
 pub type ItemsQuery<'w, 's, 'n, 'wp, 'p> =
     Query<'w, 's, (Entity, &'n NameComponent, Option<&'wp Weapon>, &'p PointC), With<Item>>;
@@ -50,7 +50,10 @@ impl PlayerActionHelper {
         }
     }
 
-    pub fn determine_action(&self) -> Option<PlayerAction> {
+    pub fn determine_action(
+        &self,
+        carried_weapons_query: &CarriedItemsQuery,
+    ) -> Option<PlayerAction> {
         if self.key.is_none() {
             return None;
         }
@@ -70,15 +73,15 @@ impl PlayerActionHelper {
         match key {
             VirtualKeyCode::G => Some(PlayerAction::GetMagicItem),
             VirtualKeyCode::P => Some(PlayerAction::ShowPlayerPosition),
-            // VirtualKeyCode::Key1 => self.select_item(0, ecs),
-            // VirtualKeyCode::Key2 => self.select_item(1, ecs),
-            // VirtualKeyCode::Key3 => self.select_item(2, ecs),
-            // VirtualKeyCode::Key4 => self.select_item(3, ecs),
-            // VirtualKeyCode::Key5 => self.select_item(4, ecs),
-            // VirtualKeyCode::Key6 => self.select_item(5, ecs),
-            // VirtualKeyCode::Key7 => self.select_item(6, ecs),
-            // VirtualKeyCode::Key8 => self.select_item(7, ecs),
-            // VirtualKeyCode::Key9 => self.select_item(8, ecs),
+            VirtualKeyCode::Key1 => self.select_item(0, carried_weapons_query),
+            VirtualKeyCode::Key2 => self.select_item(1, carried_weapons_query),
+            VirtualKeyCode::Key3 => self.select_item(2, carried_weapons_query),
+            VirtualKeyCode::Key4 => self.select_item(3, carried_weapons_query),
+            VirtualKeyCode::Key5 => self.select_item(4, carried_weapons_query),
+            VirtualKeyCode::Key6 => self.select_item(5, carried_weapons_query),
+            VirtualKeyCode::Key7 => self.select_item(6, carried_weapons_query),
+            VirtualKeyCode::Key8 => self.select_item(7, carried_weapons_query),
+            VirtualKeyCode::Key9 => self.select_item(8, carried_weapons_query),
             // _ => Action::Heal,
             _ => Some(PlayerAction::Wait),
         }
@@ -99,7 +102,7 @@ impl PlayerActionHelper {
 
     pub fn pick_up_item(
         &self,
-        carried_weapons_query: &CarriedWeaponsQuery,
+        carried_weapons_query: &CarriedItemsQuery,
         items_query: &ItemsQuery,
         commands: &mut Commands,
     ) {
@@ -123,11 +126,11 @@ impl PlayerActionHelper {
         &self,
         commands: &mut Commands,
         picked_up_weapon: &str,
-        carried_weapons_query: &CarriedWeaponsQuery,
+        carried_weapons_query: &CarriedItemsQuery,
     ) {
         if let Some((weapon, replaced)) = carried_weapons_query
             .iter()
-            .find(|(.., carried)| carried.0 == self.player)
+            .find(|(.., carried, _)| carried.0 == self.player)
             .map(|(weapon, name, ..)| (weapon, name.0.as_str()))
         {
             commands.entity(weapon).despawn();
@@ -137,16 +140,14 @@ impl PlayerActionHelper {
         }
     }
 
-    // fn select_item(&self, n: usize, ecs: &SubWorld) -> Option<PlayerAction> {
-    //     <(Entity, &Item, &Carried)>::query()
-    //         .iter(ecs)
-    //         .filter(|(_, _, carried)| carried.0 == self.player)
-    //         .enumerate()
-    //         .filter(|(item_count, _)| *item_count == n)
-    //         .find_map(|(_, (&item_entity, ..))| Some(ActivateItem::new(item_entity, self.player)))
-    //         .map(|a| vec![((), a)])
-    //         .map(|v| PlayerAction::ActivateItem(v))
-    // }
+    fn select_item(&self, n: usize, items_query: &CarriedItemsQuery) -> Option<PlayerAction> {
+        items_query
+            .iter()
+            .filter(|(.., carried, _)| carried.0 == self.player)
+            .nth(n)
+            .map(|(item, ..)| ActivateItem::new(item, self.player))
+            .map(PlayerAction::ActivateItem)
+    }
 }
 
 fn move_delta(key: VirtualKeyCode) -> Option<Point> {
@@ -161,7 +162,7 @@ fn move_delta(key: VirtualKeyCode) -> Option<Point> {
 
 #[derive(PartialEq)]
 pub enum PlayerAction {
-    ActivateItem(ActivateItemCommandVec),
+    ActivateItem(ActivateItem),
     Attack(WantsToAttack),
     GetMagicItem,
     #[allow(dead_code)]
@@ -170,5 +171,3 @@ pub enum PlayerAction {
     ShowPlayerPosition,
     Wait,
 }
-
-type ActivateItemCommandVec = Vec<((), ActivateItem)>;

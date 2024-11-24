@@ -3,10 +3,11 @@ use crate::prelude::*;
 
 pub fn player_input(
     mut commands: Commands,
+    mut activation_events: EventWriter<ActivateItem>,
     mut attack_events: EventWriter<WantsToAttack>,
     mut move_events: EventWriter<WantsToMove>,
     key: Option<Res<VirtualKeyCode>>,
-    carried_weapons_query: CarriedWeaponsQuery,
+    carried_weapons_query: CarriedItemsQuery,
     enemies_query: EnemiesQuery,
     items_query: ItemsQuery,
     player_query: PlayerQuery,
@@ -14,22 +15,22 @@ pub fn player_input(
     let key = key.map(|k| k.as_ref().clone());
     let helper = PlayerActionHelper::new(key, &player_query, &enemies_query);
 
-    if let Some(action) = helper.determine_action() {
+    if let Some(action) = helper.determine_action(&carried_weapons_query) {
         match action {
             PlayerAction::ActivateItem(a) => {
-                // commands.extend(a);
+                println!("Activating item");
+                activation_events.send(a);
             }
-            PlayerAction::Attack(a) => {
-                attack_events.send(a);
-            }
+            PlayerAction::Attack(a) => attack_events.send(a),
+
             PlayerAction::GetMagicItem => {
                 helper.pick_up_item(&carried_weapons_query, &items_query, &mut commands)
             }
+
             PlayerAction::Heal => (), // no longer in use
             // PlayerAction::Heal => helper.heal(ecs), // no longer in use
-            PlayerAction::Move(m) => {
-                move_events.send(m);
-            }
+            PlayerAction::Move(m) => move_events.send(m),
+
             PlayerAction::ShowPlayerPosition => println!(">>>Player at {:?}", helper.pos),
             PlayerAction::Wait => (),
         };
