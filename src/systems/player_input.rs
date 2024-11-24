@@ -1,7 +1,6 @@
 use super::helpers::{
     CarriedWeaponsQuery, EnemiesQuery, ItemsQuery, PlayerAction, PlayerActionHelper, PlayerQuery,
 };
-use crate::components::Name as NameComponent;
 use crate::prelude::*;
 
 pub fn player_input(

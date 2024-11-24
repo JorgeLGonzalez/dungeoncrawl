@@ -100,8 +100,7 @@ impl PlayerActionHelper {
             .map(|(item, name, weapon, ..)| (item, name.0.as_str(), weapon))
         {
             if weapon.is_some() {
-                self.discard_replaced_weapon(carried_weapons_query, commands);
-                println!("Player picks up {} weapon", name)
+                self.maybe_replace_weapon(commands, name, carried_weapons_query);
             } else {
                 println!("Player picks up {}", name);
             }
@@ -111,18 +110,21 @@ impl PlayerActionHelper {
         }
     }
 
-    fn discard_replaced_weapon(
+    fn maybe_replace_weapon(
         &self,
-        carried_weapons_query: &CarriedWeaponsQuery,
         commands: &mut Commands,
+        picked_up_weapon: &str,
+        carried_weapons_query: &CarriedWeaponsQuery,
     ) {
-        if let Some((weapon, name)) = carried_weapons_query
+        if let Some((weapon, replaced)) = carried_weapons_query
             .iter()
             .find(|(.., carried)| carried.0 == self.player)
             .map(|(weapon, name, ..)| (weapon, name.0.as_str()))
         {
             commands.entity(weapon).despawn();
-            println!("Player drops {}", name);
+            println!("Player picks up {picked_up_weapon} weapon, replacing {replaced}");
+        } else {
+            println!("Player picks up {picked_up_weapon} weapon")
         }
     }
 
