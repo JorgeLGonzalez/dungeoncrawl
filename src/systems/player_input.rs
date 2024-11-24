@@ -1,4 +1,6 @@
-use super::helpers::{PlayerAction, PlayerActionHelper};
+use super::helpers::{
+    CarriedWeaponsQuery, EnemiesQuery, ItemsQuery, PlayerAction, PlayerActionHelper, PlayerQuery,
+};
 use crate::components::Name as NameComponent;
 use crate::prelude::*;
 
@@ -7,13 +9,13 @@ pub fn player_input(
     mut attack_events: EventWriter<WantsToAttack>,
     mut move_events: EventWriter<WantsToMove>,
     key: Option<Res<VirtualKeyCode>>,
-    carried_weapons_query: Query<(Entity, &NameComponent, &Carried), With<Weapon>>,
-    enemy_query: Query<(Entity, &PointC), With<Enemy>>,
-    items_query: Query<(Entity, &NameComponent, Option<&Weapon>, &PointC), With<Item>>,
-    player_query: Query<(Entity, &PointC), With<Player>>,
+    carried_weapons_query: CarriedWeaponsQuery,
+    enemies_query: EnemiesQuery,
+    items_query: ItemsQuery,
+    player_query: PlayerQuery,
 ) {
     let key = key.map(|k| k.as_ref().clone());
-    let helper = PlayerActionHelper::new(key, &player_query, &enemy_query);
+    let helper = PlayerActionHelper::new(key, &player_query, &enemies_query);
 
     if let Some(action) = helper.determine_action() {
         match action {

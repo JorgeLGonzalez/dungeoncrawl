@@ -1,6 +1,13 @@
 use crate::components::Name as NameComponent;
 use crate::prelude::*;
 
+pub type CarriedWeaponsQuery<'world, 'state, 'n, 'c> =
+    Query<'world, 'state, (Entity, &'n NameComponent, &'c Carried), With<Weapon>>;
+pub type EnemiesQuery<'w, 's, 'p> = Query<'w, 's, (Entity, &'p PointC), With<Enemy>>;
+pub type ItemsQuery<'w, 's, 'n, 'wp, 'p> =
+    Query<'w, 's, (Entity, &'n NameComponent, Option<&'wp Weapon>, &'p PointC), With<Item>>;
+pub type PlayerQuery<'w, 's, 'p> = Query<'w, 's, (Entity, &'p PointC), With<Player>>;
+
 pub struct PlayerActionHelper {
     attack: Option<WantsToAttack>,
     destination: Option<Point>,
@@ -12,14 +19,14 @@ pub struct PlayerActionHelper {
 impl PlayerActionHelper {
     pub fn new(
         key: Option<VirtualKeyCode>,
-        player_query: &Query<(Entity, &PointC), With<Player>>,
-        enemy_query: &Query<(Entity, &PointC), With<Enemy>>,
+        player_query: &PlayerQuery,
+        enemies_query: &EnemiesQuery,
     ) -> Self {
         let (player, pos_c) = player_query.single();
         let pos = pos_c.0;
         let destination = key.and_then(move_delta).map(|delta| delta + pos);
         let attack = destination.and_then(|destination| {
-            enemy_query
+            enemies_query
                 .iter()
                 .find(|(_, pos)| pos.0 == destination)
                 .map(|(entity, _)| WantsToAttack::new(player, entity))
@@ -83,8 +90,8 @@ impl PlayerActionHelper {
 
     pub fn pick_up_item(
         &self,
-        carried_weapons_query: &Query<(Entity, &NameComponent, &Carried), With<Weapon>>,
-        items_query: &Query<(Entity, &NameComponent, Option<&Weapon>, &PointC), With<Item>>,
+        carried_weapons_query: &CarriedWeaponsQuery,
+        items_query: &ItemsQuery,
         commands: &mut Commands,
     ) {
         if let Some((item, name, weapon)) = items_query
@@ -106,7 +113,7 @@ impl PlayerActionHelper {
 
     fn discard_replaced_weapon(
         &self,
-        carried_weapons_query: &Query<(Entity, &NameComponent, &Carried), With<Weapon>>,
+        carried_weapons_query: &CarriedWeaponsQuery,
         commands: &mut Commands,
     ) {
         if let Some((weapon, name)) = carried_weapons_query
