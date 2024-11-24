@@ -70,6 +70,8 @@ impl State {
     }
 
     fn advance_level(&mut self) {
+        println!("TODO: advance level");
+        todo!();
         // let mut rng = RandomNumberGenerator::new();
         // let mut map_builder = MapBuilder::new(&mut rng);
 
@@ -127,6 +129,13 @@ impl GameState for State {
 
         ctx.set_active_console(ConsoleLayer::Map.into());
         self.ecs.insert_resource(Point::from_tuple(ctx.mouse_pos()));
+
+        match self.ecs.world.get_resource::<TurnState>() {
+            Some(TurnState::GameOver) => self.game_over(ctx),
+            Some(TurnState::NextLevel) => self.advance_level(),
+            Some(TurnState::Victory) => self.victory(ctx),
+            _ => (),
+        }
 
         self.ecs.update();
 

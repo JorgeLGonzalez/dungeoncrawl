@@ -21,9 +21,9 @@ Ported to Bevy based on [Learn Bevy's ECS by ripping off someone else's project]
 - [x] player combat
 - [x] use_items
   - [x] display inventory in hud system and check hud system in port code
-- [ ] player_input w/ more advanced actions
-- [ ] end_turn
-- [ ] end_screen
+- [x] player_input w/ more advanced actions
+- [x] end_turn
+- [x] end_screen
 - [ ] level_advancer
 - [ ] themes
 - [ ] random_move missing stuff?
