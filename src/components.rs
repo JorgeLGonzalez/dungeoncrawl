@@ -59,8 +59,7 @@ impl FieldOfView {
     }
 }
 
-#[derive(Component)]
-// #[derive(Clone, Component, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Component)]
 pub struct Health {
     pub current: i32,
     pub max: i32,
