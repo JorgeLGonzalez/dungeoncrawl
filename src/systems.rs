@@ -41,7 +41,7 @@ pub fn build_system_sets(app: &mut App) {
         GameStage::PlayerCombat,
         ConditionSet::new()
             .run_if_resource_equals(TurnState::PlayerTurn)
-            // .with_system(use_items::use_items)
+            .with_system(use_items::use_items)
             .with_system(combat::combat)
             .into(),
     );

@@ -17,22 +17,15 @@ pub fn player_input(
 
     if let Some(action) = helper.determine_action(&carried_weapons_query) {
         match action {
-            PlayerAction::ActivateItem(a) => {
-                println!("Activating item");
-                activation_events.send(a);
-            }
-            PlayerAction::Attack(a) => attack_events.send(a),
+            PlayerAction::ActivateItem(a) => activation_events.send(a),
 
+            PlayerAction::Attack(a) => attack_events.send(a),
             PlayerAction::GetMagicItem => {
                 helper.pick_up_item(&carried_weapons_query, &items_query, &mut commands)
             }
-
-            PlayerAction::Heal => (), // no longer in use
-            // PlayerAction::Heal => helper.heal(ecs), // no longer in use
             PlayerAction::Move(m) => move_events.send(m),
-
-            PlayerAction::ShowPlayerPosition => println!(">>>Player at {:?}", helper.pos),
-            PlayerAction::Wait => (),
+            PlayerAction::ShowPlayerPosition => println!(">>> Player at {:?}", helper.pos),
+            PlayerAction::Wait => println!("Wait. Skip turn."),
         };
 
         commands.insert_resource(TurnState::PlayerTurn);

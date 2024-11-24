@@ -87,19 +87,6 @@ impl PlayerActionHelper {
         }
     }
 
-    // pub fn heal(&self, ecs: &mut SubWorld) {
-    //     if let Ok(health) = ecs
-    //         .entry_mut(self.player)
-    //         .unwrap()
-    //         .get_component_mut::<Health>()
-    //     {
-    //         if health.current < health.max {
-    //             health.current += 1;
-    //             println!("Healed to {}", health.current);
-    //         }
-    //     }
-    // }
-
     pub fn pick_up_item(
         &self,
         carried_weapons_query: &CarriedItemsQuery,
@@ -165,8 +152,6 @@ pub enum PlayerAction {
     ActivateItem(ActivateItem),
     Attack(WantsToAttack),
     GetMagicItem,
-    #[allow(dead_code)]
-    Heal,
     Move(WantsToMove),
     ShowPlayerPosition,
     Wait,

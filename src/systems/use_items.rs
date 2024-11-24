@@ -1,19 +1,23 @@
-// use super::helpers::ActivationMessage;
-// use crate::prelude::*;
+use super::helpers::item_activator::prelude::*;
+use crate::prelude::*;
 
-// #[system]
-// #[read_component(ActivateItem)]
-// #[read_component(ProvidesHealing)]
-// #[read_component(ProvidesDungeonMap)]
-// #[write_component(Health)]
-// pub fn use_items(ecs: &mut SubWorld, commands: &mut CommandBuffer, #[resource] map: &mut Map) {
-//     let activations: Vec<ActivationMessage> = <(Entity, &ActivateItem)>::query()
-//         .iter(ecs)
-//         .filter_map(|(&entity, activate)| ActivationMessage::new(activate, entity, ecs))
-//         .collect();
+pub fn use_items(
+    mut activation_events: EventReader<ActivateItem>,
+    mut commands: Commands,
+    mut map: ResMut<Map>,
+    mut health_query: HealthQuery,
+    items_query: ItemsQuery,
+) {
+    activation_events
+        .iter()
+        .map(ItemActivator::new)
+        .for_each(|activator| {
+            match activator.determine_kind(&items_query) {
+                Some(ItemKind::Healing(h)) => activator.heal(&h, &mut health_query),
+                Some(ItemKind::Map) => activator.reveal_map(&mut map),
+                None => (),
+            }
 
-//     for activation in activations.iter() {
-//         activation.activate(map, ecs);
-//         activation.remove(commands);
-//     }
-// }
+            commands.entity(activator.item).despawn();
+        });
+}
