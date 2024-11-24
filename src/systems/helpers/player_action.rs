@@ -1,6 +1,15 @@
 use crate::components::Name as NameComponent;
 use crate::prelude::*;
 
+pub mod prelude {
+    pub use super::CarriedWeaponsQuery;
+    pub use super::EnemiesQuery;
+    pub use super::ItemsQuery;
+    pub use super::PlayerAction;
+    pub use super::PlayerActionHelper;
+    pub use super::PlayerQuery;
+}
+
 pub type CarriedWeaponsQuery<'world, 'state, 'n, 'c> =
     Query<'world, 'state, (Entity, &'n NameComponent, &'c Carried), With<Weapon>>;
 pub type EnemiesQuery<'w, 's, 'p> = Query<'w, 's, (Entity, &'p PointC), With<Enemy>>;
