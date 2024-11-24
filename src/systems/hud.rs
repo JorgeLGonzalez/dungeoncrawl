@@ -1,8 +1,9 @@
+use crate::components::Name as NameComponent;
 use crate::prelude::*;
 
 pub fn hud(
     player_query: Query<(&Player, &Health), With<Player>>,
-    inventory_query: Query<(&Name, &Carried), With<Item>>,
+    inventory_query: Query<(&NameComponent, &Carried), With<Item>>,
 ) {
     let mut draw_batch = DrawBatch::new();
     draw_batch.target(ConsoleLayer::Hud.into());
@@ -22,16 +23,19 @@ pub fn hud(
         ColorPair::new(WHITE, RED),
     );
 
-    // if !inventory.is_empty() {
-    //     draw_batch.print_color(
-    //         Point::new(3, 2),
-    //         "Items carried",
-    //         ColorPair::new(YELLOW, BLACK),
-    //     );
-    // }
-    // inventory.iter().enumerate().for_each(|(idx, item)| {
-    //     draw_batch.print(Point::new(3, 3 + idx), format!("{}:{}", idx + 1, item));
-    // });
+    if !inventory_query.is_empty() {
+        draw_batch.print_color(
+            Point::new(3, 2),
+            "Items carried",
+            ColorPair::new(YELLOW, BLACK),
+        );
+    }
+    inventory_query
+        .iter()
+        .enumerate()
+        .for_each(|(idx, (item, _))| {
+            draw_batch.print(Point::new(3, 3 + idx), format!("{}:{}", idx + 1, item.0));
+        });
 
     draw_batch.print_color_right(
         Point::new(SCREEN_WIDTH * 2, 1),

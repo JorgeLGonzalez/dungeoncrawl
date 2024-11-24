@@ -19,8 +19,8 @@ Ported to Bevy based on [Learn Bevy's ECS by ripping off someone else's project]
 - [x] movement: prevent enemies stepping on each other
 - [x] monster combat
 - [x] player combat
-- [ ] use_items
-  - [ ] display inventory in hud system and check hud system in port code
+- [x] use_items
+  - [x] display inventory in hud system and check hud system in port code
 - [ ] player_input w/ more advanced actions
 - [ ] end_turn
 - [ ] end_screen
