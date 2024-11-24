@@ -7,8 +7,9 @@ pub fn player_input(
     mut attack_events: EventWriter<WantsToAttack>,
     mut move_events: EventWriter<WantsToMove>,
     key: Option<Res<VirtualKeyCode>>,
+    carried_weapons_query: Query<(Entity, &NameComponent, &Carried), With<Weapon>>,
     enemy_query: Query<(Entity, &PointC), With<Enemy>>,
-    items_query: Query<(Entity, &NameComponent, &Item, &PointC)>,
+    items_query: Query<(Entity, &NameComponent, Option<&Weapon>, &PointC), With<Item>>,
     player_query: Query<(Entity, &PointC), With<Player>>,
 ) {
     let key = key.map(|k| k.as_ref().clone());
@@ -22,7 +23,9 @@ pub fn player_input(
             PlayerAction::Attack(a) => {
                 attack_events.send(a);
             }
-            PlayerAction::GetMagicItem => helper.pick_up_item(&items_query, &mut commands),
+            PlayerAction::GetMagicItem => {
+                helper.pick_up_item(&carried_weapons_query, &items_query, &mut commands)
+            }
             PlayerAction::Heal => (), // no longer in use
             // PlayerAction::Heal => helper.heal(ecs), // no longer in use
             PlayerAction::Move(m) => {

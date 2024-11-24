@@ -83,37 +83,41 @@ impl PlayerActionHelper {
 
     pub fn pick_up_item(
         &self,
-        items_query: &Query<(Entity, &NameComponent, &Item, &PointC)>,
+        carried_weapons_query: &Query<(Entity, &NameComponent, &Carried), With<Weapon>>,
+        items_query: &Query<(Entity, &NameComponent, Option<&Weapon>, &PointC), With<Item>>,
         commands: &mut Commands,
     ) {
-        if let Some((item, name, pos)) = items_query
+        if let Some((item, name, weapon)) = items_query
             .iter()
             .find(|(.., item_pos)| item_pos.0 == self.pos)
-            .map(|(item, name, _, pos)| (item, name, pos.0))
+            .map(|(item, name, weapon, ..)| (item, name.0.as_str(), weapon))
         {
-            println!("Picked up {:?}", name.0);
-            commands.entity(item).remove::<PointC>();
-            commands.entity(item).insert(Carried(self.player));
-        }
+            if weapon.is_some() {
+                self.discard_replaced_weapon(carried_weapons_query, commands);
+                println!("Player picks up {} weapon", name)
+            } else {
+                println!("Player picks up {}", name);
+            }
 
-        //     if is_weapon(item, ecs) {
-        //         self.discard_replaced_weapon(commands, ecs);
-        //         println!("Player picks up {} weapon", name.0)
-        //     } else {
-        //         println!("Player picks up {}", name.0);
-        //     }
-        // });
+            commands.entity(item).insert(Carried(self.player));
+            commands.entity(item).remove::<PointC>();
+        }
     }
 
-    // fn discard_replaced_weapon(&self, commands: &mut CommandBuffer, ecs: &SubWorld) {
-    //     <(Entity, &Carried, &Weapon, &Name)>::query()
-    //         .iter(ecs)
-    //         .filter(|(_, carried_weapon, ..)| carried_weapon.0 == self.player)
-    //         .for_each(|(&weapon, .., name)| {
-    //             commands.remove(weapon);
-    //             println!("Player drops {}", name.0);
-    //         });
-    // }
+    fn discard_replaced_weapon(
+        &self,
+        carried_weapons_query: &Query<(Entity, &NameComponent, &Carried), With<Weapon>>,
+        commands: &mut Commands,
+    ) {
+        if let Some((weapon, name)) = carried_weapons_query
+            .iter()
+            .find(|(.., carried)| carried.0 == self.player)
+            .map(|(weapon, name, ..)| (weapon, name.0.as_str()))
+        {
+            commands.entity(weapon).despawn();
+            println!("Player drops {}", name);
+        }
+    }
 
     // fn select_item(&self, n: usize, ecs: &SubWorld) -> Option<PlayerAction> {
     //     <(Entity, &Item, &Carried)>::query()
@@ -126,11 +130,6 @@ impl PlayerActionHelper {
     //         .map(|v| PlayerAction::ActivateItem(v))
     // }
 }
-
-// fn is_weapon(item: Entity, ecs: &SubWorld) -> bool {
-//     ecs.entry_ref(item)
-//         .map_or(false, |e| e.get_component::<Weapon>().is_ok())
-// }
 
 fn move_delta(key: VirtualKeyCode) -> Option<Point> {
     match key {
