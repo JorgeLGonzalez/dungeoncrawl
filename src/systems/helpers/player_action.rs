@@ -1,63 +1,71 @@
 use crate::prelude::*;
 
 pub struct PlayerActionHelper {
-    attacks: AttackCommandVec,
+    attack: Option<WantsToAttack>,
     destination: Option<Point>,
     key: Option<VirtualKeyCode>,
-    // pub player: Entity,
+    pub player: Entity,
     pub pos: Point,
 }
 
 impl PlayerActionHelper {
-    pub fn new(key: Option<Res<'_, VirtualKeyCode>>, pos: Point) -> Self {
-        // let (player, pos) = get_player_info(ecs);
-        let mut helper = Self {
-            attacks: Vec::new(),
-            destination: key.and_then(move_delta).map(|delta| delta + pos),
-            key: None,
-            // player,
+    pub fn new(
+        key: Option<VirtualKeyCode>,
+        player_query: &Query<(Entity, &PointC), With<Player>>,
+        enemy_query: &Query<(Entity, &PointC), With<Enemy>>,
+    ) -> Self {
+        let (player, pos_c) = player_query.single();
+        let pos = pos_c.0;
+        let destination = key.and_then(move_delta).map(|delta| delta + pos);
+        let attack = destination.and_then(|destination| {
+            enemy_query
+                .iter()
+                .find(|(_, pos)| pos.0 == destination)
+                .map(|(entity, _)| WantsToAttack::new(player, entity))
+        });
+
+        Self {
+            attack,
+            destination,
+            key,
+            player,
             pos,
-        };
-
-        // helper.attacks = helper.gather_attacks(ecs);
-
-        helper
+        }
     }
 
-    // pub fn determine_action(&self, ecs: &SubWorld) -> Option<PlayerAction> {
-    //     if self.key.is_none() {
-    //         return None;
-    //     }
+    pub fn determine_action(&self) -> Option<PlayerAction> {
+        if self.key.is_none() {
+            return None;
+        }
 
-    //     if !self.attacks.is_empty() {
-    //         return Some(PlayerAction::Attack(self.attacks.clone()));
-    //     }
+        if self.attack.is_some() {
+            return self.attack.map(|a| PlayerAction::Attack(a));
+        }
 
-    //     // if let Some(destination) = self.destination {
-    //     //     return Some(PlayerAction::Move(vec![(
-    //     //         (),
-    //     //         WantsToMove::new(self.player, destination),
-    //     //     )]));
-    //     // }
+        if let Some(destination) = self.destination {
+            return Some(PlayerAction::Move(WantsToMove::new(
+                self.player,
+                destination,
+            )));
+        }
 
-    //     // let key = self.key.unwrap();
-    //     // match key {
-    //     //     VirtualKeyCode::G => Some(PlayerAction::GetMagicItem),
-    //     //     VirtualKeyCode::P => Some(PlayerAction::ShowPlayerPosition),
-    //     //     VirtualKeyCode::Key1 => self.select_item(0, ecs),
-    //     //     VirtualKeyCode::Key2 => self.select_item(1, ecs),
-    //     //     VirtualKeyCode::Key3 => self.select_item(2, ecs),
-    //     //     VirtualKeyCode::Key4 => self.select_item(3, ecs),
-    //     //     VirtualKeyCode::Key5 => self.select_item(4, ecs),
-    //     //     VirtualKeyCode::Key6 => self.select_item(5, ecs),
-    //     //     VirtualKeyCode::Key7 => self.select_item(6, ecs),
-    //     //     VirtualKeyCode::Key8 => self.select_item(7, ecs),
-    //     //     VirtualKeyCode::Key9 => self.select_item(8, ecs),
-    //     //     // _ => Action::Heal,
-    //     //     _ => Some(PlayerAction::Wait),
-    //     // }
-    //     None
-    // }
+        let key = self.key.unwrap();
+        match key {
+            VirtualKeyCode::G => Some(PlayerAction::GetMagicItem),
+            VirtualKeyCode::P => Some(PlayerAction::ShowPlayerPosition),
+            // VirtualKeyCode::Key1 => self.select_item(0, ecs),
+            // VirtualKeyCode::Key2 => self.select_item(1, ecs),
+            // VirtualKeyCode::Key3 => self.select_item(2, ecs),
+            // VirtualKeyCode::Key4 => self.select_item(3, ecs),
+            // VirtualKeyCode::Key5 => self.select_item(4, ecs),
+            // VirtualKeyCode::Key6 => self.select_item(5, ecs),
+            // VirtualKeyCode::Key7 => self.select_item(6, ecs),
+            // VirtualKeyCode::Key8 => self.select_item(7, ecs),
+            // VirtualKeyCode::Key9 => self.select_item(8, ecs),
+            // _ => Action::Heal,
+            _ => Some(PlayerAction::Wait),
+        }
+    }
 
     // pub fn heal(&self, ecs: &mut SubWorld) {
     //     if let Ok(health) = ecs
@@ -89,19 +97,6 @@ impl PlayerActionHelper {
     //         });
     // }
 
-    // fn gather_attacks(&self, ecs: &SubWorld) -> AttackCommandVec {
-    //     self.destination
-    //         .map(|destination| {
-    //             <(Entity, &Point)>::query()
-    //                 .filter(component::<Enemy>())
-    //                 .iter(ecs)
-    //                 .filter(|(_, pos)| **pos == destination)
-    //                 .map(|(entity, _)| ((), WantsToAttack::new(self.player, *entity)))
-    //                 .collect()
-    //         })
-    //         .unwrap_or_default()
-    // }
-
     // fn discard_replaced_weapon(&self, commands: &mut CommandBuffer, ecs: &SubWorld) {
     //     <(Entity, &Carried, &Weapon, &Name)>::query()
     //         .iter(ecs)
@@ -129,8 +124,8 @@ impl PlayerActionHelper {
 //         .map_or(false, |e| e.get_component::<Weapon>().is_ok())
 // }
 
-fn move_delta(key: Res<'_, VirtualKeyCode>) -> Option<Point> {
-    match key.as_ref() {
+fn move_delta(key: VirtualKeyCode) -> Option<Point> {
+    match key {
         VirtualKeyCode::Left => Some(Point::new(-1, 0)),
         VirtualKeyCode::Right => Some(Point::new(1, 0)),
         VirtualKeyCode::Up => Some(Point::new(0, -1)),
@@ -139,27 +134,16 @@ fn move_delta(key: Res<'_, VirtualKeyCode>) -> Option<Point> {
     }
 }
 
-// fn get_player_info(ecs: &SubWorld) -> (Entity, Point) {
-//     <(Entity, &Point)>::query()
-//         .filter(component::<Player>())
-//         .iter(ecs)
-//         .nth(0)
-//         .map(|(player, pos)| (*player, *pos))
-//         .unwrap()
-// }
-
 #[derive(PartialEq)]
 pub enum PlayerAction {
     ActivateItem(ActivateItemCommandVec),
-    Attack(AttackCommandVec),
+    Attack(WantsToAttack),
     GetMagicItem,
     #[allow(dead_code)]
     Heal,
-    Move(MoveCommandVec),
+    Move(WantsToMove),
     ShowPlayerPosition,
     Wait,
 }
 
 type ActivateItemCommandVec = Vec<((), ActivateItem)>;
-type AttackCommandVec = Vec<((), WantsToAttack)>;
-type MoveCommandVec = Vec<((), WantsToMove)>;

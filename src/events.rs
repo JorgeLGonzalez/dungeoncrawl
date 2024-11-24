@@ -1,7 +1,7 @@
 use bevy::prelude::Entity;
 use bracket_lib::prelude::Point;
 
-#[derive(PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct WantsToAttack {
     pub attacker: Entity,
     pub victim: Entity,

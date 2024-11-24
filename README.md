@@ -29,6 +29,7 @@ Ported to Bevy based on [Learn Bevy's ECS by ripping off someone else's project]
 - [ ] random_move missing stuff?
 - [ ] cleanup components
 - [ ] cleanup systems
+- [ ] player attacks are duplicated against orcs (single msg processed twice)
 
 See [Run Your Rust Games in a Browser](https://hands-on-rust.com/2021/11/06/run-your-rust-games-in-a-browser-hands-on-rust-bonus-content/)
 
