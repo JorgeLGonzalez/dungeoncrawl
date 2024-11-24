@@ -1,3 +1,4 @@
+use crate::components::Name as NameComponent;
 use crate::prelude::*;
 
 pub struct PlayerActionHelper {
@@ -80,22 +81,29 @@ impl PlayerActionHelper {
     //     }
     // }
 
-    // pub fn pick_up_item(&self, ecs: &mut SubWorld, commands: &mut CommandBuffer) {
-    //     <(Entity, &Name, &Item, &Point)>::query()
-    //         .iter(ecs)
-    //         .filter(|(.., &item_pos)| item_pos == self.pos)
-    //         .for_each(|(&item, name, ..)| {
-    //             commands.remove_component::<Point>(item);
-    //             commands.add_component(item, Carried(self.player));
+    pub fn pick_up_item(
+        &self,
+        items_query: &Query<(Entity, &NameComponent, &Item, &PointC)>,
+        commands: &mut Commands,
+    ) {
+        if let Some((item, name, pos)) = items_query
+            .iter()
+            .find(|(.., item_pos)| item_pos.0 == self.pos)
+            .map(|(item, name, _, pos)| (item, name, pos.0))
+        {
+            println!("Picked up {:?}", name.0);
+            commands.entity(item).remove::<PointC>();
+            commands.entity(item).insert(Carried(self.player));
+        }
 
-    //             if is_weapon(item, ecs) {
-    //                 self.discard_replaced_weapon(commands, ecs);
-    //                 println!("Player picks up {} weapon", name.0)
-    //             } else {
-    //                 println!("Player picks up {}", name.0);
-    //             }
-    //         });
-    // }
+        //     if is_weapon(item, ecs) {
+        //         self.discard_replaced_weapon(commands, ecs);
+        //         println!("Player picks up {} weapon", name.0)
+        //     } else {
+        //         println!("Player picks up {}", name.0);
+        //     }
+        // });
+    }
 
     // fn discard_replaced_weapon(&self, commands: &mut CommandBuffer, ecs: &SubWorld) {
     //     <(Entity, &Carried, &Weapon, &Name)>::query()

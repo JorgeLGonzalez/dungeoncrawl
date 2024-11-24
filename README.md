@@ -18,11 +18,11 @@ Ported to Bevy based on [Learn Bevy's ECS by ripping off someone else's project]
   - [x] entity_render based on fov
 - [x] movement: prevent enemies stepping on each other
 - [x] monster combat
-- [ ] player combat
-- [ ] end_turn
+- [x] player combat
 - [ ] use_items
   - [ ] display inventory in hud system and check hud system in port code
 - [ ] player_input w/ more advanced actions
+- [ ] end_turn
 - [ ] end_screen
 - [ ] level_advancer
 - [ ] themes

@@ -1,16 +1,18 @@
 use super::helpers::{PlayerAction, PlayerActionHelper};
+use crate::components::Name as NameComponent;
 use crate::prelude::*;
 
 pub fn player_input(
     mut commands: Commands,
     mut attack_events: EventWriter<WantsToAttack>,
     mut move_events: EventWriter<WantsToMove>,
-    player_query: Query<(Entity, &PointC), With<Player>>,
-    enemy_query: Query<(Entity, &PointC), With<Enemy>>,
     key: Option<Res<VirtualKeyCode>>,
+    enemy_query: Query<(Entity, &PointC), With<Enemy>>,
+    items_query: Query<(Entity, &NameComponent, &Item, &PointC)>,
+    player_query: Query<(Entity, &PointC), With<Player>>,
 ) {
-    let helper =
-        PlayerActionHelper::new(key.map(|k| k.as_ref().clone()), &player_query, &enemy_query);
+    let key = key.map(|k| k.as_ref().clone());
+    let helper = PlayerActionHelper::new(key, &player_query, &enemy_query);
 
     if let Some(action) = helper.determine_action() {
         match action {
@@ -20,8 +22,7 @@ pub fn player_input(
             PlayerAction::Attack(a) => {
                 attack_events.send(a);
             }
-            PlayerAction::GetMagicItem => {}
-            // PlayerAction::GetMagicItem => helper.pick_up_item(ecs, commands),
+            PlayerAction::GetMagicItem => helper.pick_up_item(&items_query, &mut commands),
             PlayerAction::Heal => (), // no longer in use
             // PlayerAction::Heal => helper.heal(ecs), // no longer in use
             PlayerAction::Move(m) => {

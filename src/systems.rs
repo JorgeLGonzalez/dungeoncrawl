@@ -1,5 +1,4 @@
 mod chasing;
-mod collisions;
 mod combat;
 mod end_turn;
 mod entity_render;
@@ -63,17 +62,6 @@ pub fn build_system_sets(app: &mut App) {
             .with_system(fov::fov)
             .into(),
     );
-
-    // TODO remove
-    // app.add_system_set_to_stage(
-    //     GameStage::Collisions,
-    //     ConditionSet::new()
-    //         .run_if_resource_equals(TurnState::PlayerTurn)
-    //         .with_system(collisions::collisions)
-    //         .with_system(fov::fov)
-    //         .with_system(end_turn::end_turn)
-    //         .into(),
-    // );
 
     app.add_system_set_to_stage(
         GameStage::GenerateMonsterMoves,
