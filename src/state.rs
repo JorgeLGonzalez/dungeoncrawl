@@ -5,7 +5,6 @@ mod spawner;
 use crate::{prelude::*, systems::build_system_sets};
 use level_advancer::advance_level;
 use spawner::Spawner;
-use std::process::Command;
 
 pub struct State {
     ecs: App,
@@ -18,9 +17,6 @@ impl State {
         let mut ecs = App::new();
         // This is not a strict-ECS approach (a system would), but we mimic the source project design.
         Spawner::spawn(&mut ecs.world, &mut rng, &mut mb, 0);
-
-        ecs.insert_resource(mb.map)
-            .insert_resource(Camera::new(mb.player_start));
 
         ecs.add_event::<ActivateItem>()
             .add_event::<WantsToAttack>()
@@ -62,23 +58,29 @@ impl State {
             SystemStage::parallel(),
         );
 
-        ecs.insert_resource(TurnState::AwaitingInput);
-
         build_system_sets(&mut ecs);
 
-        Self { ecs }
+        let mut state = Self { ecs };
+        state.create_resources(mb);
+
+        state
     }
 
     fn advance_level(&mut self) {
-        println!("TODO: advance level");
-        todo!();
-        // let mut rng = RandomNumberGenerator::new();
-        // let mut map_builder = MapBuilder::new(&mut rng);
+        let mut rng = RandomNumberGenerator::new();
+        let mut map_builder = MapBuilder::new(&mut rng);
 
-        // let level = advance_level(&mut self.ecs, &map_builder);
-        // Spawner::spawn(&mut self.ecs, &mut rng, &mut map_builder, level);
+        let level = advance_level(&mut self.ecs.world, &map_builder);
+        Spawner::spawn(&mut self.ecs.world, &mut rng, &mut map_builder, level);
 
-        // self.create_resources(mb);
+        self.create_resources(map_builder);
+    }
+
+    fn create_resources(&mut self, map_builder: MapBuilder) {
+        self.ecs
+            .insert_resource(map_builder.map)
+            .insert_resource(Camera::new(map_builder.player_start))
+            .insert_resource(TurnState::AwaitingInput);
     }
 
     fn game_over(&mut self, ctx: &mut BTerm) {

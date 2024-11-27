@@ -24,7 +24,7 @@ Ported to Bevy based on [Learn Bevy's ECS by ripping off someone else's project]
 - [x] player_input w/ more advanced actions
 - [x] end_turn
 - [x] end_screen
-- [ ] level_advancer
+- [x] level_advancer
 - [ ] themes
 - [ ] random_move missing stuff?
 - [ ] cleanup components
