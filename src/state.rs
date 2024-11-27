@@ -79,6 +79,7 @@ impl State {
     fn create_resources(&mut self, map_builder: MapBuilder) {
         self.ecs
             .insert_resource(map_builder.map)
+            .insert_resource(map_builder.theme)
             .insert_resource(Camera::new(map_builder.player_start))
             .insert_resource(TurnState::AwaitingInput);
     }

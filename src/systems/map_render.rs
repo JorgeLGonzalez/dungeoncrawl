@@ -2,8 +2,9 @@ use crate::prelude::*;
 
 pub fn map_render(
     player_fov: Query<&FieldOfView, With<Player>>,
-    (map, camera): (Res<Map>, Res<Camera>),
-    // #[resource] theme: &Box<dyn MapTheme>,
+    camera: Res<Camera>,
+    map: Res<Map>,
+    theme: Res<Box<dyn MapTheme>>,
 ) {
     let player_fov = player_fov.single();
 
@@ -20,7 +21,7 @@ pub fn map_render(
                 draw_batch.set(
                     pt - camera_origin,
                     determine_color(&pt, &player_fov),
-                    tile_to_render(map.tiles[map_idx(x, y)]), // theme.tile_to_render(map.tiles[map_idx(x, y)]),
+                    theme.tile_to_render(map.tiles[map_idx(x, y)]),
                 );
             }
         }
@@ -41,12 +42,4 @@ fn should_render(pt: Point, fov: &FieldOfView, map: &Map) -> bool {
     let idx = map_idx(pt.x, pt.y);
 
     map.in_bounds(pt) && (fov.visible_tiles.contains(&pt) | map.revealed_tiles[idx])
-}
-
-fn tile_to_render(tile_type: TileType) -> u16 {
-    match tile_type {
-        TileType::Exit => to_cp437('>'),
-        TileType::Floor => to_cp437('.'),
-        TileType::Wall => to_cp437('#'),
-    }
 }
