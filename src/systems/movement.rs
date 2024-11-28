@@ -1,41 +1,23 @@
+use super::helpers::mover::prelude::*;
 use crate::prelude::*;
 
 pub fn movement(
+    mut camera: ResMut<MainCamera>,
     mut commands: Commands,
+    mut map: ResMut<Map>,
     mut move_events: EventReader<WantsToMove>,
-    query: Query<(Entity, &FieldOfView, Option<&Player>)>,
-    (mut map, mut camera): (ResMut<Map>, ResMut<MainCamera>),
+    fov_query: FovQuery,
+    turn: Res<TurnState>,
 ) {
-    let valid_moves: Vec<&WantsToMove> = move_events
+    move_events
         .iter()
+        .map(|m| Mover::new(&fov_query, m))
+        .filter(|m| !m.out_of_turn(turn.to_owned()))
         .filter(|m| map.can_enter_tile(m.destination))
-        .collect();
-
-    for &WantsToMove {
-        destination,
-        entity,
-    } in valid_moves
-    {
-        commands.entity(entity).insert(PointC(destination));
-
-        if let Ok((entity, fov, player)) = query.get(entity) {
-            commands.entity(entity).insert(fov.clone_dirty());
-            if player.is_some() {
-                handle_player_move(destination, fov, map.as_mut(), camera.as_mut());
-            }
-        }
-    }
-}
-
-fn handle_player_move(
-    destination: Point,
-    fov: &FieldOfView,
-    map: &mut Map,
-    camera: &mut MainCamera,
-) {
-    fov.visible_tiles.iter().for_each(|pos| {
-        map.revealed_tiles[map_idx(pos.x, pos.y)] = true;
-    });
-
-    camera.on_player_move(destination);
+        .collect::<Vec<_>>()
+        .iter()
+        .for_each(|mover| {
+            mover.do_move(&mut commands);
+            mover.handle_player_move(&mut camera, &mut map);
+        });
 }

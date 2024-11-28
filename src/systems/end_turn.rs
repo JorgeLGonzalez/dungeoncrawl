@@ -19,7 +19,7 @@ pub fn end_turn(
         match *turn_state {
             TurnState::MonsterTurn => TurnState::AwaitingInput,
             TurnState::PlayerTurn => TurnState::MonsterTurn,
-            _ => turn_state.clone(),
+            _ => unreachable!(),
         }
     };
 

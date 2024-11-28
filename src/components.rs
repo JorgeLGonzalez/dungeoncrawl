@@ -28,7 +28,7 @@ pub struct Damage(pub i32);
 #[derive(Component)]
 pub struct Enemy;
 
-#[derive(Component)]
+#[derive(Clone, Component)]
 pub struct FieldOfView {
     pub is_dirty: bool,
     pub radius: i32,
