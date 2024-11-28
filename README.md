@@ -26,7 +26,7 @@ Ported to Bevy based on [Learn Bevy's ECS by ripping off someone else's project]
 - [x] end_screen
 - [x] level_advancer
 - [x] themes
-- [ ] restart
+- [x] restart
 - [ ] random_move missing stuff? Is it still in use? See [ported code](https://github.com/64kramsystem/learn_bevy_ecs_by_ripping_off-code/blob/master/port/15_Loot_02_better_combat/src/systems/random_move.rs)
 - [ ] cleanup components
 - [ ] cleanup systems

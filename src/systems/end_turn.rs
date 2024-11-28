@@ -9,7 +9,7 @@ pub fn end_turn(
 ) {
     let info = PlayerInfo::new(&map, &player_query);
 
-    let new_state = if info.health < 1 && false {
+    let new_state = if info.health < 1 {
         TurnState::GameOver
     } else if info.tile == TileType::Exit {
         TurnState::NextLevel

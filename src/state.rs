@@ -93,15 +93,21 @@ impl State {
     }
 
     fn restart(&mut self) {
-        // Command::new("clear")
-        //     .status()
-        //     .expect("Failed to clear terminal");
+        // We can't reset the world like Legion, because it's not supported by iyes_loopless.
+        // Resources clearing is actually tricky, because Bevy/plugins may have their own resources,
+        // whose deletion may not be exposed. One example is events; we get away without clearing
+        // them, because by the time GameOver is reached, the events are all consumed.
+        // Regarding `iyes_loopless`, we don't need to take care of it; we just set the next state.
+        // Finally, the resources directly known to us, we just overwrite them.
+        // Note that we can also just replace the current app with a new one.
+        self.ecs.world.clear_entities();
 
-        // let mut rng = RandomNumberGenerator::new();
-        // let mut mb = MapBuilder::new(&mut rng);
-        // self.ecs = World::default();
-        // Spawner::spawn(&mut self.ecs, &mut rng, &mut mb, 0);
-        // self.resources = create_resources(mb);
+        let mut rng = RandomNumberGenerator::new();
+        let mut mb = MapBuilder::new(&mut rng);
+        Spawner::spawn(&mut self.ecs.world, &mut rng, &mut mb, 0);
+        self.create_resources(mb);
+
+        self.ecs.world.remove_resource::<VirtualKeyCode>();
     }
 
     fn victory(&mut self, ctx: &mut BTerm) {
