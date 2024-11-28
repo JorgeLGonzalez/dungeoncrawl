@@ -117,7 +117,7 @@ impl PlayerActionHelper {
     ) {
         if let Some((weapon, replaced)) = carried_weapons_query
             .iter()
-            .find(|(.., carried, _)| carried.0 == self.player)
+            .find(|(.., carried, weapon)| carried.0 == self.player && weapon.is_some())
             .map(|(weapon, name, ..)| (weapon, name.0.as_str()))
         {
             commands.entity(weapon).despawn();
