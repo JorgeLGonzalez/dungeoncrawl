@@ -14,27 +14,21 @@ impl ActivateItem {
 }
 
 #[derive(Component)]
-// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct AmuletOfYala; // YALA = Yet Another Lost Amulet :)
 
 #[derive(Component)]
-// #[derive(Clone, Component, Debug, PartialEq)]
 pub struct Carried(pub Entity);
 
 #[derive(Component)]
-// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct ChasingPlayer;
 
 #[derive(Component)]
-// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct Damage(pub i32);
 
 #[derive(Component)]
-// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct Enemy;
 
 #[derive(Component)]
-// #[derive(Clone, Component, Debug, PartialEq)]
 pub struct FieldOfView {
     pub is_dirty: bool,
     pub radius: i32,
@@ -72,19 +66,15 @@ impl Health {
 }
 
 #[derive(Component)]
-// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct Item;
 
 #[derive(Component)]
-// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct MovingRandomly;
 
 #[derive(Clone, Component)]
-// #[derive(Clone, Component, PartialEq)]
 pub struct Name(pub String);
 
 #[derive(Component, Default)]
-// #[derive(Clone, Component, Copy, Debug, Default, PartialEq)]
 pub struct Player {
     pub map_level: usize,
 }
@@ -93,7 +83,6 @@ pub struct Player {
 pub struct PointC(pub Point);
 
 #[derive(Clone, Component, Copy)]
-// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct ProvidesHealing {
     pub amount: i32,
 }
@@ -105,11 +94,9 @@ impl ProvidesHealing {
 }
 
 #[derive(Component)]
-// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct ProvidesDungeonMap;
 
 #[derive(Clone, Component, Copy)]
-// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct Render {
     pub color: ColorPair,
     pub glyph: FontCharType,
@@ -134,5 +121,4 @@ pub enum RenderOrder {
 }
 
 #[derive(Component)]
-// #[derive(Clone, Component, Copy, Debug, PartialEq)]
 pub struct Weapon;

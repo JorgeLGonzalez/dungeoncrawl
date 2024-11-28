@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 pub fn map_render(
     player_fov: Query<&FieldOfView, With<Player>>,
-    camera: Res<Camera>,
+    camera: Res<MainCamera>,
     map: Res<Map>,
     theme: Res<Box<dyn MapTheme>>,
 ) {

@@ -9,9 +9,10 @@ mod systems;
 mod turn_state;
 
 mod prelude {
+    pub use bracket_lib::prelude::Rect as BracketRect;
     pub use bracket_lib::prelude::*; // force to import first
 
-    pub use crate::camera::*;
+    pub use crate::camera::Camera as MainCamera;
     pub use crate::components::*;
     pub use crate::events::*;
     pub use crate::game_stage::*;

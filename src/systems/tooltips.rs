@@ -5,7 +5,7 @@ pub fn tooltip(
     query: Query<(&PointC, &NameComponent, Option<&Health>)>,
     player_fov: Query<&FieldOfView, With<Player>>,
     mouse_pos: Res<Point>,
-    camera: Res<Camera>,
+    camera: Res<MainCamera>,
 ) {
     let player_fov = player_fov.single();
 
@@ -24,7 +24,7 @@ pub fn tooltip(
     draw_batch.submit(10100).expect("Batch error");
 }
 
-fn determine_map_pos(mouse_pos: Res<Point>, camera: Res<Camera>) -> Point {
+fn determine_map_pos(mouse_pos: Res<Point>, camera: Res<MainCamera>) -> Point {
     let offset = Point::new(camera.left_x, camera.top_y);
 
     *mouse_pos + offset

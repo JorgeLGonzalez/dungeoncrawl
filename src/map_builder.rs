@@ -30,7 +30,7 @@ pub struct MapBuilder {
     pub amulet_start: Point,
     pub map: Map,
     pub monster_spawns: Vec<Point>,
-    pub rooms: Vec<Rect>,
+    pub rooms: Vec<BracketRect>,
     pub player_start: Point,
     pub theme: Box<dyn MapTheme>,
 }
@@ -90,7 +90,7 @@ impl MapBuilder {
 
     fn build_random_rooms(&mut self, rng: &mut RandomNumberGenerator) {
         while self.rooms.len() < NUM_ROOMS {
-            let room = Rect::with_size(
+            let room = BracketRect::with_size(
                 rng.range(1, SCREEN_WIDTH - 10),
                 rng.range(1, SCREEN_HEIGHT - 10),
                 rng.range(2, 10),

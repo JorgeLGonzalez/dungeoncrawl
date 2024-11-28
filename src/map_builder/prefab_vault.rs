@@ -34,7 +34,7 @@ impl<'a> PrefabVault<'a> {
         }
     }
 
-    fn can_place(&self, vault: &Rect) -> bool {
+    fn can_place(&self, vault: &BracketRect) -> bool {
         let mut can_place = false;
         vault.for_each(|pt| {
             let idx = self.mb.map.point2d_to_index(pt);
@@ -48,13 +48,13 @@ impl<'a> PrefabVault<'a> {
         can_place
     }
 
-    fn clear_monsters(&mut self, vault: &Rect) {
+    fn clear_monsters(&mut self, vault: &BracketRect) {
         let points = vault.point_set();
         self.mb.monster_spawns.retain(|pt| !points.contains(pt));
     }
 
-    fn create_vault(&mut self) -> Rect {
-        Rect::with_size(
+    fn create_vault(&mut self) -> BracketRect {
+        BracketRect::with_size(
             self.rng.range(0, SCREEN_WIDTH - self.width),
             self.rng.range(0, SCREEN_HEIGHT - self.height),
             self.width,
@@ -105,7 +105,7 @@ impl<'a> PrefabVault<'a> {
     }
 }
 
-fn log_placement(vault: &Rect, attempts: i32) {
+fn log_placement(vault: &BracketRect, attempts: i32) {
     println!(
         "Placing {}x{} (area={}) prefab vault at ({},{}) on attempt {attempts}",
         vault.width(),

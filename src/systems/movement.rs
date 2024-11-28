@@ -4,7 +4,7 @@ pub fn movement(
     mut commands: Commands,
     mut move_events: EventReader<WantsToMove>,
     query: Query<(Entity, &FieldOfView, Option<&Player>)>,
-    (mut map, mut camera): (ResMut<Map>, ResMut<Camera>),
+    (mut map, mut camera): (ResMut<Map>, ResMut<MainCamera>),
 ) {
     let valid_moves: Vec<&WantsToMove> = move_events
         .iter()
@@ -27,7 +27,12 @@ pub fn movement(
     }
 }
 
-fn handle_player_move(destination: Point, fov: &FieldOfView, map: &mut Map, camera: &mut Camera) {
+fn handle_player_move(
+    destination: Point,
+    fov: &FieldOfView,
+    map: &mut Map,
+    camera: &mut MainCamera,
+) {
     fov.visible_tiles.iter().for_each(|pos| {
         map.revealed_tiles[map_idx(pos.x, pos.y)] = true;
     });

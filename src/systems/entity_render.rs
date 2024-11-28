@@ -3,7 +3,7 @@ use crate::prelude::*;
 pub fn entity_render(
     entities: Query<(&PointC, &Render)>,
     player_fov: Query<&FieldOfView, With<Player>>,
-    camera: Res<Camera>,
+    camera: Res<MainCamera>,
 ) {
     let mut draw_batch = DrawBatch::new();
     draw_batch.target(ConsoleLayer::Entity.into());
@@ -23,7 +23,7 @@ pub fn entity_render(
 fn gather_entities_in_render_order(
     entities_query: Query<(&PointC, &Render)>,
     player_fov_query: Query<&FieldOfView, With<Player>>,
-    camera: Res<Camera>,
+    camera: Res<MainCamera>,
 ) -> Vec<EntityInfo> {
     let offset = Point::new(camera.left_x, camera.top_y);
     let player_fov = player_fov_query.single();
