@@ -45,7 +45,7 @@ impl<'a> Spawner<'a> {
             PointC(pos),
             Render::new(
                 ColorPair::new(WHITE, BLACK),
-                to_cp437('/'),
+                to_cp437('|'),
                 RenderOrder::Item,
             ),
         ));
