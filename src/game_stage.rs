@@ -5,7 +5,6 @@ use crate::prelude::*;
 // See systems.rs
 #[derive(Clone, Debug, Eq, Hash, PartialEq, StageLabel)]
 pub enum GameStage {
-    Collisions,
     GenerateMonsterMoves,
     MonsterCombat,
     MonsterFov,

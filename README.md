@@ -27,9 +27,9 @@ Ported to Bevy based on [Learn Bevy's ECS by ripping off someone else's project]
 - [x] level_advancer
 - [x] themes
 - [x] restart
-- [ ] random_move missing stuff? Is it still in use? See [ported code](https://github.com/64kramsystem/learn_bevy_ecs_by_ripping_off-code/blob/master/port/15_Loot_02_better_combat/src/systems/random_move.rs)
+- [x] random_move missing stuff? Is it still in use? No, no longer in use
 - [ ] cleanup components
-- [ ] cleanup systems
+- [x] cleanup systems
 - [ ] player attacks are duplicated against orcs (single msg processed twice)
 
 See [Run Your Rust Games in a Browser](https://hands-on-rust.com/2021/11/06/run-your-rust-games-in-a-browser-hands-on-rust-bonus-content/)
