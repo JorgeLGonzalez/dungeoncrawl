@@ -46,6 +46,17 @@ impl Damager {
         }
     }
 
+    /// True when attack is out of turn. This can happen because the combat system
+    /// executes on both the player and monster turns so a player attack event
+    /// can be processed in both the player's and monster's turn.
+    pub fn out_of_turn(&self, turn: TurnState) -> bool {
+        match turn {
+            TurnState::MonsterTurn => !self.player_victim,
+            TurnState::PlayerTurn => self.player_victim,
+            _ => unreachable!(),
+        }
+    }
+
     pub fn weapon_damage(self, weapon_damage_query: &Query<(&Carried, &Damage)>) -> Self {
         let damage: i32 = weapon_damage_query
             .iter()
